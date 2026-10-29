@@ -19,7 +19,7 @@ export default function CandidateLayout({
         <div className="workspace min-h-svh bg-canvas text-ink">
           <CandidateSidebar />
           <CandidateNavbar />
-          <main className="px-5 pb-24 pt-[104px] lg:ml-[240px] lg:px-8">
+          <main className="px-4 pb-16 pt-[88px] lg:ml-[216px] lg:px-6">
             <div className="mx-auto max-w-[1440px]"><WorkspaceMotion>{children}</WorkspaceMotion></div>
           </main>
         </div>
