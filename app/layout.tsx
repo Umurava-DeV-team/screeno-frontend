@@ -5,7 +5,7 @@ import "./studio-workspace.css";
 import "./studio-review.css";
 import "./studio-account.css";
 import "./studio-candidate.css";
-import { landingFont } from "@/lib/landingFont";
+import { displayFont, landingFont } from "@/lib/landingFont";
 import { ReduxProvider } from "@/components/providers/ReduxProvider";
 
 import AppBootLoader from "@/components/AppBootLoader";
@@ -24,7 +24,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={landingFont.variable + " h-full"}
+      className={`${landingFont.variable} ${displayFont.variable} h-full`}
       data-scroll-behavior="smooth"
     >
       <body className="min-h-screen antialiased font-sans">

@@ -31,7 +31,7 @@ export default function AuthForm({role,mode}:{role:"recruiter"|"candidate";mode:
   beginAuthPreview(role,"verify",Date.now(),signup?"signup":"login",form.email);setForm(value=>({...value,password:""}));router.push(base+"/verify");
  }
  function resend(){if(cooldown.left>0)return;const previous=authPreviewDetails(role,forgot?"reset":"verify");beginAuthPreview(role,forgot?"reset":"verify",Date.now(),previous?.intent||"login",previous?.email||form.email);setCode("");setError("");cooldown.start();expiry.restart();}
- return <AuthShell mode={signup?"signup":mode} onGoogle={!forgot&&!reset&&!verify?()=>setError("Google sign-in is disconnected during frontend review. Use the email demo below."):undefined}>
+ return <AuthShell mode={signup?"signup":isCode?"verify":mode} recovery={forgot} footer={!success&&<p className="links-auth-return">{mode==="login"?"New here?":signup?"Already have an account?":verify?"Need a different email?":"Remembered it?"} <Link href={base+(mode==="login"?"/register":"/login")}>{mode==="login"?"Create an account":"Back to sign in"}</Link></p>} onGoogle={!forgot&&!reset&&!verify?()=>setError("Google sign-in is disconnected during frontend review. Use the email demo below."):undefined}>
  <nav className="links-auth-roles" aria-label="Choose account type">{(["recruiter","candidate"] as const).map(value=><Link key={value} aria-current={value===role?"page":undefined} href={"/auth/"+value+"/"+(verify||reset?"login":mode)}>{value==="recruiter"?"Recruiter":"Candidate"}</Link>)}</nav>
  <p className="links-demo-note">Frontend demo only. No email is sent and no real password is changed.</p>
  {error&&<p className="links-auth-alert" role="alert">{error}</p>}
@@ -46,6 +46,5 @@ export default function AuthForm({role,mode}:{role:"recruiter"|"candidate";mode:
  <button type="submit" className="links-auth-submit" disabled={loading}>{forgot?"Send reset code":reset?"Reset password":signup?"Create account":"Sign in"}<ArrowRight size={15}/></button>
  </>}
  </form>}
- {!success&&<p className="links-auth-return">{mode==="login"?"New here?":signup?"Already have an account?":verify?"Need a different email?":"Remembered it?"} <Link href={base+(mode==="login"?"/register":"/login")}>{mode==="login"?"Create an account":"Back to sign in"}</Link></p>}
  </AuthShell>;
 }

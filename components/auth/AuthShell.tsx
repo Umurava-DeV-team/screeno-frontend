@@ -2,170 +2,72 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
+import { ArrowUpRight, Check, KeyRound, LockKeyhole, Mail, ShieldCheck, Sparkles } from "lucide-react";
+import type { ReactNode } from "react";
 import ScreenoMark from "../ScreenoMark";
 
-function GoogleIcon({ className = "" }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" aria-hidden="true">
-      <path
-        fill="#EA4335"
-        d="M12 10.2v3.6h5.1c-.2 1.2-.9 2.2-1.9 2.9l3.1 2.4c1.8-1.7 2.8-4.1 2.8-7 0-.7-.1-1.3-.2-1.9H12z"
-      />
-      <path
-        fill="#34A853"
-        d="M5.3 14.3l-.8.6-2.7 2.1C3.5 20.1 7.4 22.5 12 22.5c2.7 0 5-.9 6.7-2.4l-3.1-2.4c-.9.6-2 1-3.6 1-2.8 0-5.1-1.9-6-4.4z"
-      />
-      <path
-        fill="#4A90E2"
-        d="M3.2 7.1C2.4 8.7 2 10.3 2 12s.4 3.3 1.2 4.9c0 .1 3.5-2.7 3.5-2.7-.2-.6-.3-1.2-.3-2.2s.1-1.6.3-2.2L3.2 7.1z"
-      />
-      <path
-        fill="#FBBC05"
-        d="M12 5.3c1.5 0 2.8.5 3.8 1.5l2.8-2.8C16.9 2.3 14.7 1.5 12 1.5 7.4 1.5 3.5 3.9 1.8 7.1l3.5 2.7c.8-2.5 3.2-4.5 6.7-4.5z"
-      />
-    </svg>
-  );
-}
-
 type AuthMode = "login" | "signup" | "forgot" | "reset" | "verify";
-
 type AuthShellProps = {
   mode: AuthMode;
-  children: React.ReactNode;
+  children: ReactNode;
+  footer?: ReactNode;
+  recovery?: boolean;
   onGoogle?: () => void;
   googleLoading?: boolean;
 };
 
-const COPY: Record<AuthMode, { title: string; subtitle: string }> = {
-  login: { title: "Welcome back", subtitle: "Sign in to manage applicants and keep your hiring moving." },
-  signup: { title: "Create your account", subtitle: "Bring your hiring team and applicants into one workspace." },
-  forgot: { title: "Reset password", subtitle: "Enter your email and we’ll send you a 6-digit code." },
-  reset: { title: "Choose a new password", subtitle: "Choose a strong password for your account." },
-  verify: { title: "Verify your email", subtitle: "Confirming your address keeps your account secure." },
+const COPY: Record<AuthMode, { title: string; subtitle: string; visual: string; note: string }> = {
+  login: { title: "Welcome back", subtitle: "Your next great hire starts here. Let’s get you signed in.", visual: "Good people.\nGreat beginnings.", note: "A little less admin. A lot more human." },
+  signup: { title: "Let’s get started", subtitle: "Create your account and bring your hiring team together.", visual: "Big potential.\nMeet your team.", note: "One place for every step of hiring." },
+  forgot: { title: "Forgot your password?", subtitle: "It happens. Enter your email to start a password reset.", visual: "A fresh start.\nJust a step away.", note: "We’ll help you find your way back." },
+  verify: { title: "Check your inbox", subtitle: "One small check before you’re on your way.", visual: "Small check.\nBig possibilities.", note: "Your hiring workspace is waiting for you." },
+  reset: { title: "A fresh start", subtitle: "Choose a new password to finish resetting your account.", visual: "New password.\nSame great team.", note: "Back to the people and work that matter." },
 };
 
-/** Split-screen auth — fits one viewport; brand visual on the right. */
-export function AuthShell({ mode, children, onGoogle, googleLoading }: AuthShellProps) {
-  const { title, subtitle } = COPY[mode];
-
-  return (
-    <div data-auth-mode={mode} className="auth-page relative min-h-[100svh] overflow-x-hidden overflow-y-auto bg-[#f3f4f2] font-[family-name:var(--font-sans)] text-[#0a0a0a] lg:h-dvh lg:min-h-0 lg:overflow-hidden">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-[0.05]"
-        style={{
-          backgroundImage: "url('/marketing/auth-pattern.svg')",
-          backgroundSize: "96px 96px",
-        }}
-      />
-
-      <div className="relative mx-auto flex min-h-[100svh] max-w-6xl flex-col lg:h-full lg:min-h-0 lg:flex-row lg:items-stretch lg:gap-4 lg:p-4">
-        <motion.div
-          initial={{ opacity: 0, x: -12 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-          className={`auth-shell-form flex min-h-[100svh] flex-1 flex-col justify-center px-5 py-8 sm:px-8 lg:min-h-0 lg:overflow-hidden lg:px-12 ${mode === "signup" ? "lg:justify-start lg:py-2" : "lg:py-4"}`}
-        >
-          <Link href="/" className={`mb-4 inline-flex shrink-0 items-center gap-2 self-start ${mode === "signup" ? "sm:mb-2 lg:mb-1" : "sm:mb-5"}`}>
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#b1ff43] text-[#0a0a0a]">
-              <ScreenoMark size={25} />
-            </span>
-            <span className="text-[16px] font-bold tracking-tight">Screeno</span>
-          </Link>
-
-          <h1 className="text-[clamp(1.45rem,2.6vw,1.85rem)] font-bold leading-[1.1] tracking-[-0.03em]">
-            {title}
-          </h1>
-          <p className="mt-1.5 max-w-sm text-[13px] leading-relaxed text-[#525252]">{subtitle}</p>
-
-          {(mode === "login" || mode === "signup") && onGoogle ? (
-            <>
-              <button
-                type="button"
-                onClick={onGoogle}
-                disabled={googleLoading}
-                className={`flex w-full max-w-md cursor-pointer items-center justify-center gap-2.5 rounded-[5px] border border-black/12 bg-white px-4 text-[13px] font-semibold text-[#0a0a0a] transition hover:border-black/25 hover:bg-zinc-50 disabled:opacity-60 ${mode === "signup" ? "mt-2 py-2" : "mt-4 py-2.5"}`}
-              >
-                <GoogleIcon className="h-4 w-4" />
-                {googleLoading ? "Connecting…" : "Continue with Google"}
-              </button>
-              <div className={`flex max-w-md items-center gap-3 ${mode === "signup" ? "my-2" : "my-3.5"}`}>
-                <span className="h-px flex-1 bg-black/10" />
-                <span className="text-[10px] font-medium uppercase tracking-[0.14em] text-[#737373]">
-                  or email
-                </span>
-                <span className="h-px flex-1 bg-black/10" />
-              </div>
-            </>
-          ) : (
-            <div className="mt-4" />
-          )}
-
-          <div className="w-full max-w-md">{children}</div>
-
-
-        </motion.div>
-
-        <motion.aside
-          initial={{ opacity: 0, x: 16 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5, delay: 0.06, ease: [0.22, 1, 0.36, 1] }}
-          className="relative hidden h-full min-h-0 flex-1 overflow-hidden rounded-[12px] bg-[#0a0a0a] lg:flex lg:flex-col"
-        >
-          <Image
-            src="/marketing/auth-hero.webp"
-            alt="Portfolio previews on mobile devices"
-            fill
-            priority
-            className="object-cover object-center"
-            sizes="(min-width: 1024px) 50vw, 0px"
-          />
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#0a0a0a]/75 via-[#0a0a0a]/20 to-[#0a0a0a]/5"
-          />
-          <div
-            aria-hidden
-            className="pointer-events-none absolute -right-10 top-6 h-40 w-40 rounded-full bg-[#b1ff43]/25 blur-[70px]"
-          />
-
-          <div className="relative z-10 flex h-full flex-col justify-between p-8">
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#b1ff43]">
-                Screeno
-              </p>
-              <h2 className="mt-3 max-w-sm text-[clamp(1.35rem,2vw,1.75rem)] font-bold leading-[1.15] tracking-[-0.03em] text-white">
-                One workspace for{" "}
-                <em
-                  className="font-normal italic text-[#b1ff43]"
-                  style={{ fontFamily: "inherit" }}
-                >
-                  every hiring step
-                </em>
-              </h2>
-              <p className="mt-2 max-w-sm text-[13px] leading-relaxed text-zinc-300">
-                Applicants · work samples · team feedback · clear next steps.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-3 gap-3 border-t border-white/10 pt-5">
-              {[
-                { t: "Applicants", d: "One shared view" },
-                { t: "Work samples", d: "Skills in context" },
-                { t: "Your team", d: "Human decisions" },
-              ].map((item) => (
-                <div key={item.t}>
-                  <p className="text-[11px] font-semibold text-white">{item.t}</p>
-                  <p className="mt-0.5 text-[10px] text-zinc-400">{item.d}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </motion.aside>
-      </div>
-    </div>
-  );
+function GoogleIcon() {
+  return <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path fill="#4285F4" d="M21.6 12.23c0-.71-.06-1.39-.18-2.05H12v3.88h5.38a4.6 4.6 0 0 1-2 3.01v2.51h3.24c1.89-1.74 2.98-4.3 2.98-7.35Z"/><path fill="#34A853" d="M12 22c2.7 0 4.96-.9 6.62-2.42l-3.24-2.51c-.9.6-2.04.97-3.38.97-2.6 0-4.8-1.76-5.59-4.12H3.07v2.59A10 10 0 0 0 12 22Z"/><path fill="#FBBC05" d="M6.41 13.92a6 6 0 0 1 0-3.84V7.49H3.07a10 10 0 0 0 0 9.02l3.34-2.59Z"/><path fill="#EA4335" d="M12 5.96c1.47 0 2.79.51 3.83 1.51l2.87-2.87A9.6 9.6 0 0 0 12 2a10 10 0 0 0-8.93 5.49l3.34 2.59C7.2 7.72 9.4 5.96 12 5.96Z"/></svg>;
 }
 
-export { GoogleIcon };
+function RecoveryDecoration({ mode }: { mode: AuthMode }) {
+  const Icon = mode === "verify" ? Mail : mode === "reset" ? ShieldCheck : KeyRound;
+  return <div className="auth-recovery-art" aria-hidden="true">
+    <span className="auth-art-orbit" /><span className="auth-art-orbit inner" />
+    <span className="auth-art-spark"><Sparkles size={15} /></span>
+    <span className="auth-art-card"><Icon size={30} strokeWidth={1.5} /></span>
+    <span className="auth-art-check"><Check size={13} strokeWidth={3} /></span>
+    <span className="auth-art-dot" />
+  </div>;
+}
+
+export function AuthShell({ mode, children, footer, recovery, onGoogle, googleLoading }: AuthShellProps) {
+  const reduced = useReducedMotion();
+  const copy = COPY[mode];
+  const utility = mode === "forgot" || mode === "verify" || mode === "reset";
+  const step = mode === "forgot" ? 0 : mode === "reset" ? 2 : 1;
+  return <div className="auth-page" data-auth-mode={mode}>
+    <div className="auth-backdrop" aria-hidden="true"><span /><span /><span /></div>
+    <motion.main className="auth-split-card" initial={reduced ? false : { opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .55, ease: [.22, 1, .36, 1] }}>
+      <aside className="auth-visual">
+        <Image src="/marketing/screeno-stickman-auth.webp" alt="A friendly Screeno cartoon character holding a candidate folder" fill priority sizes="(min-width: 900px) 48vw, 0px" className="auth-character-image" />
+        <div className="auth-visual-shade" aria-hidden="true" />
+        <span className="auth-visual-tag"><span /> People make the difference.</span>
+        <div className="auth-visual-caption"><span className="auth-visual-eyebrow">GOOD THINGS START WITH PEOPLE</span><h2>{copy.visual.split("\n").map(line => <span key={line}>{line}</span>)}</h2><p>{copy.note}</p></div>
+        <div className="auth-visual-bottom"><span>THE HUMAN SIDE OF HIRING</span><ArrowUpRight size={17} /></div>
+      </aside>
+      <section className="auth-form-panel" aria-labelledby="auth-heading">
+        <div className="auth-shell-form">
+          <Link href="/" className="auth-brand" aria-label="Screeno home"><ScreenoMark size={32} /><span>Screeno<span className="auth-brand-dot">.</span></span></Link>
+          {utility && <RecoveryDecoration mode={mode} />}
+          <header className="auth-heading"><span className="auth-form-eyebrow">{utility ? "LET’S GET YOU BACK IN" : mode === "signup" ? "YOUR TEAM’S NEXT CHAPTER" : "YOUR HIRING WORKSPACE"}</span><h1 id="auth-heading">{copy.title}</h1><p>{copy.subtitle}</p></header>
+          {(recovery || mode === "reset") && <ol className="auth-recovery-steps" aria-label="Password recovery progress">{["Email", "Code", "New password"].map((label, index) => <li key={label} data-state={index < step ? "complete" : index === step ? "current" : "pending"} aria-current={index === step ? "step" : undefined}><span>{index < step ? <Check size={11} /> : index + 1}</span>{label}</li>)}</ol>}
+          <div className="auth-form-content">{children}</div>
+          {onGoogle && <><div className="auth-social-divider"><span />or continue with<span /></div><button type="button" className="auth-google-button" onClick={onGoogle} disabled={googleLoading}><GoogleIcon />{googleLoading ? "Connecting…" : "Continue with Google"}</button></>}
+          {footer}
+          <p className="auth-form-footnote"><LockKeyhole size={11} /> Made for people. Built for better hiring.</p>
+        </div>
+      </section>
+    </motion.main>
+    <span className="auth-outside-note">Screeno · Your team’s next great beginning.</span>
+  </div>;
+}
