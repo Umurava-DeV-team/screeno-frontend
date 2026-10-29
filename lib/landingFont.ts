@@ -6,11 +6,3 @@ export const landingFont = localFont({
   display: "swap",
   fallback: ["Arial", "sans-serif"],
 });
-
-export const displayFont = localFont({
-  src: "../public/fonts/barlow-condensed/BarlowCondensed-ExtraBold.ttf",
-  weight: "800",
-  variable: "--font-display",
-  display: "swap",
-  fallback: ["Impact", "Arial Narrow", "sans-serif"],
-});
