@@ -1,0 +1,2 @@
+import AssessmentFlowHeader from "@/components/studio/AssessmentFlowHeader";
+export default function AssessmentResultsLayout({children}:{children:React.ReactNode}){return <div className="assessment-workbench"><AssessmentFlowHeader/>{children}</div>;}

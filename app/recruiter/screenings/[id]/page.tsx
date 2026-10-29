@@ -1,0 +1,2 @@
+import ScreeningStudio from "@/components/studio/ScreeningStudio";
+export default async function Page({params}:{params:Promise<{id:string}>}){const{id}=await params;return <ScreeningStudio reviewId={id}/>;}

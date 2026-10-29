@@ -1,0 +1,30 @@
+"use client";
+import Link from "next/link";
+import Image from "next/image";
+import {useProfilePhoto} from "@/lib/useProfilePhoto";
+import {usePathname,useRouter} from "next/navigation";
+import {Bell,ArrowUpRight,ChevronDown,CheckCheck,Settings,LogOut,UserRound} from "lucide-react";
+import {useEffect,useRef,useState} from "react";
+import {useAppDispatch,useAppSelector} from "@/lib/store/hooks";
+import {fetchNotifications,markNotificationRead,markAllNotificationsRead} from "@/lib/store/features/notificationsSlice";
+import {logout} from "@/lib/store/features/authSlice";
+import {DEMO_CHANGE_EVENT} from "@/lib/demo/store";
+export default function WorkspaceNavbar({role}:{role:"recruiter"|"candidate"}){
+ const path=usePathname(),router=useRouter(),dispatch=useAppDispatch(),{user,isAuthenticated}=useAppSelector(state=>state.auth),{items,error}=useAppSelector(state=>state.notifications);
+ const [open,setOpen]=useState<"notifications"|"profile"|null>(null),[actionError,setActionError]=useState("");
+ const root=useRef<HTMLDivElement>(null),notificationButton=useRef<HTMLButtonElement>(null),profileButton=useRef<HTMLButtonElement>(null);
+ useEffect(()=>{if(!isAuthenticated)return;const refresh=()=>{void dispatch(fetchNotifications());};refresh();window.addEventListener(DEMO_CHANGE_EVENT,refresh);return()=>window.removeEventListener(DEMO_CHANGE_EVENT,refresh);},[dispatch,isAuthenticated]);
+ useEffect(()=>{if(!open)return;const dismiss=(event:PointerEvent)=>{if(!root.current?.contains(event.target as Node))setOpen(null);};const escape=(event:KeyboardEvent)=>{if(event.key==="Escape"){setOpen(null);(open==="profile"?profileButton:notificationButton).current?.focus();}};document.addEventListener("pointerdown",dismiss);document.addEventListener("keydown",escape);return()=>{document.removeEventListener("pointerdown",dismiss);document.removeEventListener("keydown",escape);};},[open]);
+ const segment=path.split("/")[2],titles:Record<string,string>={dashboard:"Overview",jobs:"Jobs",candidates:"Applicants",screenings:"Screening",assessments:"Assessments",analytics:"Analytics",intelligence:"Hiring toolkit",experience:"My hiring journey",applications:"My applications",profile:"My profile",settings:"Settings",notifications:"Notifications"};
+ const photo=useProfilePhoto(user?.id),profile=useAppSelector(state=>state.profile.profile);
+ const displayName=profile?.userId===user?.id?[profile?.firstName,profile?.lastName].filter(Boolean).join(" ")||user?.name:user?.name;
+ const unread=items.filter(item=>!item.read).length;
+ async function read(id?:string){try{setActionError("");if(id)await dispatch(markNotificationRead(id)).unwrap();else await dispatch(markAllNotificationsRead()).unwrap();}catch{setActionError("Could not update notifications. Please try again.");}}
+ return <header className="screeno-topbar fixed left-0 right-0 top-0 z-30 h-[72px] border-b border-slate-100 bg-white px-5 lg:left-[240px] lg:px-8"><div className="flex h-full items-center justify-between gap-3"><div className="ml-12 flex items-center gap-3 text-xs lg:ml-0"><span className="hidden text-slate-500 sm:inline">Hiring workspace</span><span className="hidden text-slate-300 sm:inline">/</span><strong className="font-medium">{titles[segment]||"Workspace"}</strong></div><div className="screeno-topbar-actions" ref={root}>
+ <Link href={"/"+role+(role==="recruiter"?"/jobs/new":"/jobs")} className="screeno-topbar-create">{role==="recruiter"?"Create a job":"Explore jobs"}<ArrowUpRight size={13}/></Link>
+ <div className="screeno-topbar-popover"><button ref={notificationButton} type="button" className="screeno-bell-button" aria-label={"Notifications, "+unread+" unread"} aria-expanded={open==="notifications"} aria-controls="topbar-notifications" onClick={()=>setOpen(open==="notifications"?null:"notifications")}><Bell size={18}/>{unread>0&&<i>{unread>9?"9+":unread}</i>}</button>
+ {open==="notifications"&&<section id="topbar-notifications" className="screeno-dropdown-panel screeno-notification-menu" role="dialog" aria-label="Notifications"><header><h2>Notifications <span>{unread} new</span></h2><button type="button" disabled={!unread} aria-label="Mark all notifications as read" onClick={()=>void read()}><CheckCheck size={16}/></button></header>{(error||actionError)&&<p role="alert">{actionError||error}</p>}<div className="screeno-notification-menu-list">{items.length?items.slice(0,5).map(item=><button type="button" key={item.id} data-unread={!item.read} onClick={()=>void read(item.id)}><span className="screeno-notice-icon"><Bell size={15}/></span><span><strong>{item.title}</strong><small>{item.message}</small><time>{new Date(item.createdAt).toLocaleDateString("en-GB",{day:"numeric",month:"short"})}</time></span>{!item.read&&<i/>}</button>):<p>You’re all caught up.</p>}</div><Link href={"/"+role+"/notifications"} onClick={()=>setOpen(null)}>View all notifications <ArrowUpRight size={13}/></Link></section>}</div>
+ <div className="screeno-topbar-popover"><button ref={profileButton} type="button" className="screeno-profile-trigger" aria-label="Account menu" aria-expanded={open==="profile"} aria-controls="topbar-profile" onClick={()=>setOpen(open==="profile"?null:"profile")}><span>{photo?<Image src={photo} alt="" width={34} height={34} unoptimized/>:(displayName||"You").split(" ").map(part=>part[0]).join("").slice(0,2)}</span><strong>{displayName||"Your account"}</strong><ChevronDown size={13}/></button>
+ {open==="profile"&&<section id="topbar-profile" role="dialog" aria-label="Account" className="screeno-dropdown-panel screeno-profile-menu"><header><strong>{displayName||"Your account"}</strong><small>{user?.email}</small><span>{role==="recruiter"?"Recruiter account":"Candidate account"}</span></header><Link href={"/"+role+"/profile"} onClick={()=>setOpen(null)}><UserRound size={16}/>Your profile</Link><Link href={"/"+role+"/settings"} onClick={()=>setOpen(null)}><Settings size={16}/>Account settings</Link><button type="button" onClick={()=>{dispatch(logout());setOpen(null);router.push("/auth/"+role+"/login");}}><LogOut size={16}/>Sign out</button></section>}</div>
+ </div></div></header>;
+}

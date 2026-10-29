@@ -1,0 +1,16 @@
+"use client";
+import {BarChart,Bar,XAxis,YAxis,CartesianGrid,Tooltip,ResponsiveContainer,PieChart,Pie,Cell} from "recharts";
+import {useReducedMotion} from "motion/react";
+import {groupApplicantDays} from "@/lib/recruitmentAnalytics";
+export function ActivityChart({data}:{data:{date:string;count:number}[]}){
+ const reduced=useReducedMotion(),{size,points:groups}=groupApplicantDays(data),format=(date:string)=>new Intl.DateTimeFormat("en-GB",{day:"numeric",month:"short",timeZone:"UTC"}).format(new Date(date+"T00:00:00Z"));
+ const points=groups.map(group=>({date:group.startDate,label:group.startDate===group.endDate?format(group.startDate):format(group.startDate)+" – "+format(group.endDate),count:group.count}));
+ const maximum=Math.max(1,...points.map(point=>point.count));
+ return <div className="screeno-chart-canvas" role="group" aria-label={size===1?"Daily new applicants":"New applicants grouped into "+size+"-day periods"}>
+ <ResponsiveContainer width="100%" height="100%" minWidth={0}><BarChart data={points} barCategoryGap="22%" margin={{top:18,right:10,left:-20,bottom:12}} accessibilityLayer><CartesianGrid stroke="#e8edf3" strokeDasharray="3 4" vertical={false}/><XAxis dataKey="label" axisLine={false} tickLine={false} minTickGap={14} tick={{fontSize:10,fill:"#64748b"}}/><YAxis domain={[0,Math.ceil(maximum*1.2)]} allowDecimals={false} axisLine={false} tickLine={false} tick={{fontSize:11,fill:"#64748b"}}/><Tooltip cursor={{fill:"#0649b508"}} contentStyle={{border:"1px solid #e5e7eb",borderRadius:5,fontSize:12}} formatter={value=>[Number(value??0).toLocaleString(),"New applicants"]}/><Bar dataKey="count" name="New applicants" radius={[4,4,0,0]} maxBarSize={72} isAnimationActive={!reduced}>{points.map((point,index)=><Cell key={point.date} fill={index===points.length-1?"#8cd12d":"#0649b5"}/>)}</Bar></BarChart></ResponsiveContainer><p className="screeno-bar-caption">{size===1?"One bar per day.":"Each bar totals "+size+" consecutive days, with a shorter final group when needed."}</p></div>;
+}
+export function ShortlistChart({shortlisted,other}:{shortlisted:number;other:number}){
+ const reduced=useReducedMotion(),total=shortlisted+other,data=[{name:"Shortlisted",value:shortlisted,color:"#0649b5"},{name:"Other applicants",value:other,color:"#b1ff43"}];
+ if(!total)return <div className="screeno-chart-empty">Add applicants to see shortlist coverage.</div>;
+ return <div className="screeno-donut-wrap" role="group" aria-label={"Shortlist pie chart: "+shortlisted+" shortlisted and "+other+" other applicants"}><ResponsiveContainer width="100%" height="100%" minWidth={0}><PieChart accessibilityLayer><Pie data={data} dataKey="value" nameKey="name" innerRadius={0} outerRadius="80%" startAngle={90} endAngle={-270} stroke="white" strokeWidth={3} isAnimationActive={!reduced}>{data.map(item=><Cell key={item.name} fill={item.color}/>)}</Pie><Tooltip contentStyle={{borderRadius:5,fontSize:12}} formatter={value=>[Number(value??0).toLocaleString(),"Applicants"]}/></PieChart></ResponsiveContainer></div>;
+}

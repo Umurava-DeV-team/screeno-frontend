@@ -1,0 +1,20 @@
+"use client";
+import {useId,useState,type MouseEvent,type FocusEvent} from "react";
+import Image from "next/image";
+import {ComposableMap,Geographies,Geography,Marker} from "react-simple-maps/core";
+import {geoCentroid} from "d3-geo";
+import type {FeatureCollection} from "geojson";
+import world from "@/lib/geo/world-countries.geo.json";
+import flags from "@/lib/geo/country-flags.json";
+import type {CountryTotal} from "@/lib/recruitmentAnalytics";
+const geography=world as unknown as FeatureCollection,flagCodes:Record<string,string>=flags;
+export default function RecruitmentWorldMap({countries,selected,onSelect}:{countries:CountryTotal[];selected:string|null;onSelect:(name:string)=>void}){
+ const pattern="country-dots-"+useId().replace(/[^a-z0-9]/gi,""),tip=useId(),[hover,setHover]=useState<{name:string;code?:string;count:number;x:number;y:number}|null>(null);
+ const totals=new Map(countries.map(country=>[country.name,country.count]));
+ function show(name:string,id:string|number|undefined,event:MouseEvent<SVGElement>|FocusEvent<SVGElement>){const rect=event.currentTarget.getBoundingClientRect(),x="clientX" in event?event.clientX:rect.left+rect.width/2,y="clientY" in event?event.clientY:rect.top;setHover({name,code:flagCodes[String(Number(id))]||(name==="Kosovo"?"xk":undefined),count:totals.get(name)||0,x:Math.max(8,Math.min(x+14,innerWidth-220)),y:Math.max(8,Math.min(y+14,innerHeight-100))});}
+ return <div className="screeno-map-wrap"><ComposableMap width={800} height={390} projection="geoMercator" projectionConfig={{scale:110,center:[12,12]}} className="screeno-world-map" role="group" aria-label="Applicant records by country. Hover a country to see its flag and applicant count.">
+ <defs><pattern id={pattern} width={4} height={4} patternUnits="userSpaceOnUse"><circle cx={1} cy={1} r={.75} fill="#cbd8ec"/></pattern></defs><Geographies geography={geography}>{({geographies})=><>
+ {geographies.filter(geo=>geo.properties?.name!=="Antarctica").map(geo=><Geography key={geo.rsmKey} geography={geo} fill={selected===geo.properties?.name?"#b1ff4388":totals.has(String(geo.properties?.name))?"#0649b518":"url(#"+pattern+")"} stroke="#dbe4ef" strokeWidth={.35} aria-hidden="true" onMouseMove={event=>show(String(geo.properties?.name),geo.id,event)} onMouseLeave={()=>setHover(null)} onClick={()=>onSelect(String(geo.properties?.name))}/>)}
+ {geographies.filter(geo=>totals.has(String(geo.properties?.name))).map(geo=>{const name=String(geo.properties?.name),count=totals.get(name)!,r=Math.min(13,4+Math.sqrt(count));return <Marker key={geo.rsmKey} coordinates={geoCentroid(geo)} role="button" tabIndex={0} aria-label={name+": "+count+" applicants"} aria-describedby={hover?.name===name?tip:undefined} aria-pressed={selected===name} onMouseMove={event=>show(name,geo.id,event)} onMouseLeave={()=>setHover(null)} onFocus={event=>show(name,geo.id,event)} onBlur={()=>setHover(null)} onClick={()=>onSelect(name)} onKeyDown={event=>{if(event.key==="Enter"||event.key===" "){event.preventDefault();onSelect(name);}if(event.key==="Escape")setHover(null);}} className="screeno-country-marker"><circle r={r+5} fill="#0649b50a" stroke="#0649b530"/><circle r={r} fill={selected===name?"#b1ff43":"#0649b5"} stroke="white" strokeWidth={1.5}/><text textAnchor="middle" dominantBaseline="central" fill={selected===name?"#243234":"white"} fontSize={8} fontWeight={700} pointerEvents="none">{count}</text></Marker>;})}</>}</Geographies></ComposableMap>
+ {hover&&<div id={tip} role="tooltip" className="screeno-country-tooltip" style={{left:hover.x,top:hover.y}}>{hover.code?<Image src={"/flags/"+hover.code+".svg"} alt={hover.name+" flag"} width={36} height={27} unoptimized/>:<span className="screeno-flag-unavailable">Flag unavailable</span>}<div><strong>{hover.name}</strong><span>{hover.count} {hover.count===1?"applicant":"applicants"}</span></div></div>}</div>;
+}
