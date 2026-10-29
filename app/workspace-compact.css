@@ -1,0 +1,109 @@
+/* Compact product density, scoped away from marketing and authentication. */
+.workspace main { font-size: 12px; }
+.workspace main h1 { font-size: 24px; line-height: 1.25; }
+.workspace main h2 { font-size: 18px; line-height: 1.35; }
+.workspace main h3 { font-size: 14px; }
+.workspace-sidebar { width: 216px; }
+.workspace-sidebar-brand { padding: 22px 20px 17px; }
+.workspace-sidebar .screeno-wordmark { font-size: 20px; }
+.workspace-sidebar .screeno-brand-mark,.workspace-sidebar .screeno-brand-mark>svg { width: 29px; height: 29px; }
+.workspace-sidebar>nav { padding-inline: 10px; }
+.workspace-nav-link { padding: 9px 11px; gap: 9px; }
+.workspace-nav-group { margin-top: 12px; }
+.workspace-sidebar>footer { padding: 8px 10px 12px; }
+.workspace-menu-button { width: 36px; height: 36px; top: 14px; }
+.workspace .studio-page { padding: 4px 0 32px; gap: 20px; }
+.workspace :is(.studio-heading,.screeno-page-title) { gap: 14px; }
+.workspace :is(.studio-heading,.screeno-page-title) p { margin-top: 7px; line-height: 1.65; }
+.workspace .studio-kicker { margin-bottom: 7px; letter-spacing: .1em; }
+.workspace :is(.studio-panel,.assessment-studio-card,.candidate-task-card,.candidate-task-guide) { padding: 20px; }
+.workspace :is(.studio-grid,.candidate-task-list) { gap: 14px; }
+.workspace :is(.studio-primary,.screeno-soft-button,.screeno-outline-button) { min-height: 34px; padding: 8px 12px; gap: 7px; font-size: 11px; }
+.workspace .studio-search { padding: 8px 10px; }
+.workspace .studio-search input { font-size: 11px; }
+.workspace .studio-icon { width: 35px; height: 35px; border-radius: 5px; }
+.workspace .studio-icon>svg { width: 19px; height: 19px; }
+.workspace .studio-toolbar { gap: 12px; }
+.workspace .studio-toolbar nav button { padding-block: 9px; font-size: 11px; }
+.workspace .studio-field { margin: 18px 0; gap: 6px; font-size: 11px; }
+.workspace .studio-actions { margin-top: 18px; }
+.workspace .studio-empty { padding: 35px 20px; gap: 9px; }
+.workspace .studio-notice { padding: 12px 14px; font-size: 11px; }
+.workspace :is(.screeno-candidates-page,.screeno-inbox) { padding-top: 4px; gap: 20px; }
+.workspace .screeno-record-table>div:first-child { padding: 16px; }
+.workspace main :is(.ts-panel,.bg-white)[class~="p-8"] { padding: 20px; }
+.workspace main .gap-8 { gap: 20px; }
+.workspace main .space-y-8>:not(:last-child) { margin-block-end: 20px; }
+.workspace .screeno-record-table thead th { padding: 11px 13px; }
+.workspace .screeno-record-table tbody td { padding: 10px 13px; }
+.workspace .screeno-person-detail { padding: 18px 17px; top: 82px; }
+.workspace .screeno-person-avatar { width: 58px; height: 58px; margin: 14px auto 10px; font-size: 20px; }
+.workspace .screeno-person-detail h2 { font-size: 15px; }
+.workspace .screeno-person-detail section { margin-top: 17px; }
+.workspace .screeno-person-detail dl { margin-top: 17px; gap: 13px; }
+.workspace .screeno-person-contact { margin: 12px 0 18px; }
+.workspace .screeno-links-metric { min-height: 96px; padding: 18px; gap: 15px; }
+.workspace .screeno-links-metric-icon { width: 28px; height: 28px; }
+.workspace .screeno-links-metric-copy strong { font-size: 22px; }
+.workspace .studio-stepper { padding: 14px 18px; }
+.workspace .studio-stepper li { gap: 9px; }
+.workspace .studio-stepper li>span { width: 29px; height: 29px; font-size: 11px; }
+.workspace .screening-setup { gap: 17px; }
+.workspace .screening-guide h2 { font-size: 22px; }
+.workspace .screening-guide>div { margin-top: 20px; gap: 10px; }
+.workspace .studio-role-summary { padding: 15px; margin: 15px 0; }
+.workspace .assessment-flow { padding: 18px 20px; gap: 17px; }
+.workspace .assessment-flow h2 { font-size: 14px; }
+.workspace :is(.assessment-studio-card,.candidate-task-card) h2 { margin-top: 16px; font-size: 16px; }
+.workspace .assessment-card-meta { margin-top: 14px; gap: 12px; }
+.workspace .assessment-workbench { gap: 20px; padding-top: 4px; }
+.workspace .assessment-flow-header { padding: 15px 18px; }
+.workspace .opportunity-search-bar { padding: 12px; gap: 12px; }
+.workspace .opportunity-layout { gap: 16px; }
+.workspace .opportunity-list>button { padding: 17px; gap: 12px; }
+.workspace .opportunity-list strong { font-size: 14px; }
+.workspace .opportunity-detail { padding: 21px; top: 82px; }
+.workspace .opportunity-detail h2 { font-size: 21px; }
+.workspace .company-letter.large { width: 43px; height: 43px; font-size: 20px; }
+.workspace .opportunity-detail>section { margin-top: 20px; }
+.workspace .opportunity-facts { padding-block: 17px; margin-top: 16px; }
+.workspace .candidate-task-summary { gap: 12px; }
+.workspace .candidate-task-summary>div { padding: 18px; gap: 11px; }
+.workspace .candidate-task-summary strong { font-size: 22px; }
+.workspace .candidate-task-summary svg { width: 21px; height: 21px; }
+.workspace .candidate-task-guide>h2 { font-size: 21px; }
+.workspace .candidate-task-guide ol { margin-block: 18px; gap: 12px; }
+.workspace .account-form { padding: 20px; gap: 20px; }
+.workspace .account-fields { gap: 17px; }
+.workspace .account-tabs { padding-inline: 20px; gap: 20px; }
+.workspace .account-tabs button { padding: 14px 0 12px; font-size: 11px; }
+.workspace .account-form :is(input:not([type=checkbox]):not([type=file]),textarea) { padding: 8px 11px; font-size: 12px; }
+.workspace .account-profile-photo { gap: 18px; padding-bottom: 18px; }
+.workspace .account-profile-photo>div,.workspace .account-profile-photo>div>img,.workspace .account-profile-photo>div>span { width: 64px; height: 64px; }
+.workspace :is(.account-security-card,.account-device) { padding: 17px; }
+.workspace .account-document { padding: 25px; gap: 13px; }
+.workspace .screeno-inbox-group article { padding: 16px 18px; }
+.candidate-assessment-workbench h1 { font-size: 24px; }
+.candidate-assessment-process { padding: 15px; gap: 16px; }
+.screeno-crud-modal>div:last-child>div:first-child { padding: 15px 21px; }
+.screeno-crud-modal h3 { font-size: 15px; }
+.screeno-crud-modal :is(h1,h2) { font-size: 20px; }
+.screeno-crud-modal .ts-auth-input { padding: 9px 11px; font-size: 12px; }
+.screeno-crud-modal :is(form,section,div)[class~="p-8"],.screeno-crud-modal :is(form,section,div)[class~="p-10"] { padding: 21px; }
+@media(max-width:1023px) {
+  .workspace-sidebar-brand { padding-top: 67px; }
+}
+@media(max-width:639px) {
+  .workspace main h1 { font-size: 22px; }
+  .workspace main h2 { font-size: 17px; }
+  .workspace :is(.studio-primary,.screeno-soft-button,.screeno-outline-button) { min-height: 40px; }
+  .workspace .studio-search input,.workspace .account-form :is(input:not([type=checkbox]):not([type=file]),textarea),.screeno-crud-modal .ts-auth-input { font-size: 16px; }
+  .workspace :is(.studio-panel,.assessment-studio-card,.candidate-task-card,.candidate-task-guide) { padding: 17px; }
+  .workspace .opportunity-detail { position: static; padding: 18px; }
+  .workspace .studio-stepper { padding: 13px 11px; }
+  .workspace .candidate-task-summary { grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; }
+  .workspace .candidate-task-summary>div { display: grid; grid-template-columns: 17px 1fr; align-items: center; padding: 12px 9px; gap: 5px; }
+  .workspace .candidate-task-summary strong { font-size: 19px; }
+  .workspace .candidate-task-summary svg { width: 17px; height: 17px; }
+  .workspace .candidate-task-summary span { grid-column: 1/-1; font-size: 10px; line-height: 1.5; }
+}
