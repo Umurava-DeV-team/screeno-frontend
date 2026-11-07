@@ -1,106 +1,29 @@
-"use client";
-import CustomSelect from "@/components/CustomSelect";
+'use client';
+import { Suspense, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { ArrowRight, BriefcaseBusiness, ClipboardList, Check, MapPin } from 'lucide-react';
+import CustomSelect from '@/components/CustomSelect';
+import AssessmentFlowHeader from '@/components/studio/AssessmentFlowHeader';
+import { usePreviewResource } from '@/lib/demo/usePreviewResource';
+import type { DemoJob } from '@/lib/demo/types';
+import { apiFetch } from '@/lib/api';
+import PreviewResourceState from '@/components/PreviewResourceState';
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { ArrowLeft, ArrowRight } from "lucide-react";
-import { usePreviewResource } from "@/lib/demo/usePreviewResource";
-import type { DemoJob } from "@/lib/demo/types";
-import { apiFetch } from "@/lib/api";
-import PreviewResourceState from "@/components/PreviewResourceState";
-export default function NewAssessmentPage() {
-  const router = useRouter();
-  const jobs = usePreviewResource<DemoJob[]>("/jobs");
-  const [jobId, setJobId] = useState("");
-  const [title, setTitle] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
-  async function create(e: React.FormEvent) {
-    e.preventDefault();
-    setBusy(true);
-    setError("");
+export default function NewAssessmentPage() { return <Suspense fallback={<PreviewResourceState loading />}><Setup /></Suspense>; }
+function Setup() {
+  const router = useRouter(), query = useSearchParams();
+  const jobs = usePreviewResource<DemoJob[]>('/jobs');
+  const [jobId, setJobId] = useState(query.get('jobId') || ''), [title, setTitle] = useState('');
+  const [busy, setBusy] = useState(false), [error, setError] = useState('');
+  async function create(event: React.FormEvent) {
+    event.preventDefault(); setBusy(true); setError('');
     try {
-      const value = await apiFetch<{ id: string }>(
-        "/assessments/generate-draft",
-        { method: "POST", body: JSON.stringify({ jobId }) },
-      );
-      if (title.trim())
-        await apiFetch("/assessments/" + value.id, {
-          method: "PATCH",
-          body: JSON.stringify({ title: title.trim() }),
-        });
-      router.push("/recruiter/assessments/edit/" + value.id);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Unable to create a draft.");
-    } finally {
-      setBusy(false);
-    }
+      const value = await apiFetch<{ id: string }>('/assessments/generate-draft', { method: 'POST', body: JSON.stringify({ jobId, title: title.trim() || undefined }) });
+      if (title.trim()) await apiFetch('/assessments/' + value.id, { method: 'PATCH', body: JSON.stringify({ title: title.trim() }) });
+      router.push('/recruiter/assessments/edit/' + value.id);
+    } catch (cause) { setError(cause instanceof Error ? cause.message : 'Unable to create a draft.'); setBusy(false); }
   }
-  if (jobs.loading || !jobs.data)
-    return <PreviewResourceState loading={jobs.loading} error={jobs.error} />;
-  return (
-    <div className="mx-auto max-w-3xl space-y-6">
-      <Link
-        href="/recruiter/assessments/drafts"
-        className="inline-flex items-center gap-2 text-xs text-slate-500"
-      >
-        <ArrowLeft size={14} />
-        Assessment drafts
-      </Link>
-      <div>
-        <p className="ts-eyebrow text-brand">A thoughtful next step</p>
-        <h1 className="mt-2 text-3xl">Build a sample assessment.</h1>
-        <p className="mt-3 text-sm leading-7 text-slate-500">
-          Start with a local question template, then review the questions,
-          timing and passing threshold before assigning it to sample candidates.
-        </p>
-      </div>
-      <form onSubmit={create} className="ts-panel space-y-5 p-6">
-        <label className="block text-xs font-medium">
-          Job
-          <CustomSelect
-            required
-            value={jobId}
-            onChange={(e) => setJobId(e.target.value)}
-            className="ts-auth-input mt-2"
-          >
-            <option value="">Choose a sample job</option>
-            {jobs.data.map((j) => (
-              <option key={j.id} value={j.id}>
-                {j.title}
-              </option>
-            ))}
-          </CustomSelect>
-        </label>
-        <label className="block text-xs font-medium">
-          Assessment title{" "}
-          <span className="font-normal text-slate-400">(optional)</span>
-          <input
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="ts-auth-input mt-2"
-            placeholder="Use the job title, or add your own"
-          />
-        </label>
-        <p className="rounded bg-canvas p-4 text-xs leading-6 text-slate-500">
-          This preview uses five sample multiple-choice questions. AI
-          generation, coding execution, external invitations and proctoring are
-          disconnected.
-        </p>
-        {error && (
-          <p role="alert" className="text-xs text-red-600">
-            {error}
-          </p>
-        )}
-        <button
-          disabled={busy || !jobs.data.length}
-          className="ts-button disabled:opacity-50"
-        >
-          {busy ? "Creating sample draft…" : "Create draft"}
-          <ArrowRight size={15} />
-        </button>
-      </form>
-    </div>
-  );
+  if (jobs.loading || !jobs.data) return <PreviewResourceState loading={jobs.loading} error={jobs.error} />;
+  const job = jobs.data.find(item => item.id === jobId);
+  return <div className="assessment-builder"><AssessmentFlowHeader /><div className="builder-title"><span className="flow-kicker">ASSESSMENT BUILDER</span><h1>A better way to see their skills.</h1><p>Start with a role. Make the questions your own.</p></div><div className="builder-setup-grid"><form onSubmit={create} className="builder-surface"><header className="builder-section-header"><span className="flow-section-number">01</span><div><h2>Set the foundation</h2><p>Choose who you’re hiring and name this assessment.</p></div></header><div className="builder-form-fields"><label>Hiring role<CustomSelect required value={jobId} onChange={event => setJobId(event.target.value)} aria-label="Hiring role"><option value="">Select a role</option>{jobs.data.map(item => <option key={item.id} value={item.id}>{item.title}</option>)}</CustomSelect></label><label>Assessment name <small>Optional</small><input value={title} onChange={event => setTitle(event.target.value)} maxLength={160} placeholder={job ? job.title + ' assessment' : 'e.g. Frontend engineering skills'} /></label><p className="builder-field-help">You can change the name, questions, timing and pass mark in the next step.</p>{error && <p className="builder-error" role="alert">{error}</p>}</div><footer className="builder-form-footer"><span><Check size={13} />Nothing is assigned yet</span><button className="flow-button primary" disabled={busy || !job} type="submit">{busy ? 'Creating draft…' : 'Continue to questions'}<ArrowRight size={14} /></button></footer></form><aside className="builder-setup-aside"><div className="builder-role-preview"><span className="builder-preview-label">YOUR STARTING POINT</span><div className="builder-preview-symbol"><BriefcaseBusiness size={27} /></div><h2>{job?.title || 'A role worth finding the right person for.'}</h2>{job ? <p><MapPin size={13} />{job.location} · {job.experienceLevel}</p> : <p>Select a role to connect the assessment to your hiring plan.</p>}<div className="builder-preview-facts"><span><strong>05</strong>Sample questions</span><span><strong>20 <small>min</small></strong>Starting duration</span></div></div><div className="builder-tip"><ClipboardList size={18} /><div><h3>Your draft. Your decision.</h3><p>Review the template, check the candidate preview, then choose who receives it. This frontend demo saves locally and sends no emails.</p></div></div></aside></div></div>;
 }

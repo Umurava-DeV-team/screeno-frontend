@@ -30,9 +30,9 @@ export default function Modal({isOpen,onClose,title,children,width="max-w-xl"}:M
  if(!isOpen||typeof document==="undefined")return null;
  return createPortal(<div role="dialog" aria-modal="true" aria-label={title||"Dialog"} className="screeno-crud-modal fixed inset-0 z-[100] flex items-center justify-center p-4">
   <div className="absolute inset-0 bg-slate-900/60" onClick={onClose}/>
-  <div ref={panel} tabIndex={-1} className={cn("relative w-full overflow-hidden rounded-[3px] bg-white shadow-sm flex flex-col max-h-[95dvh] outline-none",width)}>
-   <div className="px-8 py-5 flex items-center justify-between bg-[#eef4fb] shrink-0"><h3 className="text-[17px] font-medium text-slate-800 tracking-tight">{title}</h3><button type="button" onClick={onClose} aria-label="Close dialog" className="text-slate-600 hover:opacity-70"><X size={20}/></button></div>
-   <div className="overflow-y-auto">{children}</div>
+  <div ref={panel} tabIndex={-1} className={cn("screeno-dialog-panel relative w-full overflow-hidden rounded-[3px] bg-white shadow-sm flex flex-col max-h-[90dvh] outline-none",width)}>
+   <div className="screeno-dialog-header flex items-center justify-between shrink-0"><h3>{title}</h3><button type="button" onClick={onClose} aria-label="Close dialog"><X size={17}/></button></div>
+   <div className="screeno-dialog-body overflow-y-auto">{children}</div>
   </div>
  </div>,document.body);
 }

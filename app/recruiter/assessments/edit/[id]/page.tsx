@@ -1,278 +1,38 @@
 'use client';
-
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Save, Send, Plus, Trash2, GripVertical, ArrowLeft } from 'lucide-react';
-import toast from 'react-hot-toast';
+import Link from 'next/link';
+import { ArrowDown, ArrowUp, ArrowRight, Check, Clock3, Copy, Plus, Save, Settings2, Trash2 } from 'lucide-react';
 import { apiFetch } from '@/lib/api';
-
-interface AssessmentQuestion {
-  id: number;
-  type: 'multiple_choice' | 'open_ended' | 'coding_problem' | 'real_world_problem';
-  category: string;
-  question: string;
-  options?: string[];
-  correctAnswer?: string;
-  marks: number;
-}
-
-interface DraftAssessment {
-  id: string;
-  jobId: string;
-  title: string;
-  instructions: string;
-  durationMinutes: number;
-  timeLimitPerQuestion: number;
-  status: string;
-  questions: AssessmentQuestion[];
-  jobType: string;
-  totalQuestions: number;
-  totalMarks: number;
-}
+import type { DemoAssessment, DemoQuestion } from '@/lib/demo/types';
+import AssessmentFlowHeader from '@/components/studio/AssessmentFlowHeader';
+import PreviewResourceState from '@/components/PreviewResourceState';
 
 export default function EditAssessmentPage() {
-  const params = useParams();
-  const router = useRouter();
-  const [assessment, setAssessment] = useState<DraftAssessment | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    loadAssessment();
-  }, [params.id]);
-
-  const loadAssessment = async () => {
-    try {
-      const data = await apiFetch<DraftAssessment>(`/assessments/${params.id}`);
-      setAssessment(data);
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to load assessment');
-      router.push('/recruiter/assessments/drafts');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSaveDraft = async () => {
-    if (!assessment) return;
-
-    setSaving(true);
-    try {
-      await apiFetch(`/assessments/${assessment.id}`, {
-        method: 'PATCH',
-        body: JSON.stringify({
-          title: assessment.title,
-          instructions: assessment.instructions,
-          durationMinutes: assessment.durationMinutes,
-          timeLimitPerQuestion: assessment.timeLimitPerQuestion,
-          questions: assessment.questions,
-        }),
-      });
-
-      toast.success('Draft saved successfully');
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to save draft');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleLaunch = () => {
-    router.push(`/recruiter/assessments/launch/${assessment?.id}`);
-  };
-
-  const handleUpdateQuestion = async (questionId: number, field: string, value: any) => {
-    if (!assessment) return;
-
-    const updatedQuestions = assessment.questions.map((q) =>
-      q.id === questionId ? { ...q, [field]: value } : q
-    );
-
-    setAssessment({ ...assessment, questions: updatedQuestions });
-  };
-
-  const handleUpdateOption = (questionId: number, optionIndex: number, value: string) => {
-    if (!assessment) return;
-
-    const updatedQuestions = assessment.questions.map((q) => {
-      if (q.id === questionId && q.options) {
-        const newOptions = [...q.options];
-        newOptions[optionIndex] = value;
-        return { ...q, options: newOptions };
-      }
-      return q;
-    });
-
-    setAssessment({ ...assessment, questions: updatedQuestions });
-  };
-
-  const handleDeleteQuestion = async (questionId: number) => {
-    if (!assessment) return;
-    if (!confirm('Delete this question?')) return;
-
-    try {
-      const updated = await apiFetch<DraftAssessment>(
-        `/assessments/${assessment.id}/questions/${questionId}`,
-        {
-          method: 'DELETE',
-        }
-      );
-
-      setAssessment(updated);
-      toast.success('Question deleted');
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to delete question');
-    }
-  };
-
-  if (loading || !assessment) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-recruiter border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-slate-600">Loading assessment...</p>
-        </div>
-      </div>
-    );
+  const { id } = useParams(), router = useRouter();
+  const [assessment, setAssessment] = useState<DemoAssessment | null>(null), [loading, setLoading] = useState(true), [error, setError] = useState('');
+  const [selected, setSelected] = useState(0), [settings, setSettings] = useState(false), [saving, setSaving] = useState(false), [dirty, setDirty] = useState(false);
+  useEffect(() => { let active = true; apiFetch<DemoAssessment>('/assessments/' + String(id)).then(value => { if (active) setAssessment(value); }).catch(cause => { if (active) setError(cause instanceof Error ? cause.message : 'Unable to load assessment.'); }).finally(() => { if (active) setLoading(false); }); return () => { active = false; }; }, [id]);
+  function update(patch: Partial<DemoAssessment>) { setAssessment(value => value ? { ...value, ...patch } : value); setDirty(true); setError(''); }
+  function updateQuestion(patch: Partial<DemoQuestion>) { if (!assessment) return; update({ questions: assessment.questions.map((question, index) => index === selected ? { ...question, ...patch } : question) }); }
+  async function save(continueToPreview = false) {
+    if (!assessment || saving) return;
+    if (!assessment.title.trim() || !Number.isInteger(assessment.durationMinutes) || assessment.durationMinutes < 1 || assessment.durationMinutes > 600 || !Number.isInteger(assessment.passingScore) || assessment.passingScore < 0 || assessment.passingScore > 100) { setError('Add a title, a duration from 1–600 minutes and a pass mark from 0–100%.'); setSettings(true); return; }
+    const invalid = assessment.questions.findIndex(question => !question.question.trim() || !Number.isInteger(question.marks) || question.marks < 1 || question.marks > 1000 || (question.type === 'multiple_choice' && (!question.correctAnswer || !question.options?.every(option => option.replace(/^[A-Z][.)]\s*/, '').trim()))));
+    if (invalid >= 0) { setSelected(invalid); setSettings(false); setError('Complete the question, answer options, correct answer and marks before saving.'); return; }
+    setSaving(true); setError('');
+    try { const value = await apiFetch<DemoAssessment>('/assessments/' + assessment.id, { method: 'PATCH', body: JSON.stringify({ title: assessment.title, instructions: assessment.instructions, durationMinutes: assessment.durationMinutes, timeLimitPerQuestion: assessment.timeLimitPerQuestion, passingScore: assessment.passingScore, questions: assessment.questions }) }); setAssessment(value); setDirty(false); if (continueToPreview) router.push('/recruiter/assessments/preview/' + assessment.id); }
+    catch (cause) { setError(cause instanceof Error ? cause.message : 'Unable to save.'); } finally { setSaving(false); }
   }
-
-  return (
-    <div className="max-w-5xl mx-auto space-y-8">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => router.push('/recruiter/assessments/drafts')}
-            className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5 text-slate-600" />
-          </button>
-          <div>
-            <h1 className="text-3xl font-medium text-slate-900">Edit Assessment</h1>
-            <p className="text-slate-500 mt-1">Review and modify questions before launching</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={handleSaveDraft}
-            disabled={saving}
-            className="px-6 py-3 bg-white border border-slate-300 text-slate-700 rounded-xl font-semibold hover:bg-slate-50 transition-colors flex items-center gap-2 disabled:opacity-50"
-          >
-            <Save className="w-4 h-4" />
-            {saving ? 'Saving...' : 'Save Draft'}
-          </button>
-          <button
-            onClick={handleLaunch}
-            className="px-6 py-3 bg-recruiter hover:opacity-90 text-white rounded-xl font-semibold transition-all flex items-center gap-2 shadow-lg shadow-blue-900/10"
-          >
-            <Send className="w-4 h-4" />
-            Launch Assessment
-          </button>
-        </div>
-      </div>
-
-      {/* Assessment Details */}
-      <div className="bg-white rounded-lg border border-slate-200 p-6">
-        <h2 className="text-lg font-medium text-slate-900 mb-4">Assessment Details</h2>
-        <div className="grid grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">
-              Assessment Title
-            </label>
-            <input
-              type="text"
-              value={assessment.title}
-              onChange={(e) => setAssessment({ ...assessment, title: e.target.value })}
-              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">
-              Duration (minutes)
-            </label>
-            <input
-              type="number"
-              value={assessment.durationMinutes}
-              onChange={(e) =>
-                setAssessment({ ...assessment, durationMinutes: parseInt(e.target.value) })
-              }
-              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-        </div>
-        <div className="mt-4">
-          <label className="block text-sm font-semibold text-slate-700 mb-2">
-            Instructions
-          </label>
-          <textarea
-            value={assessment.instructions}
-            onChange={(e) => setAssessment({ ...assessment, instructions: e.target.value })}
-            rows={3}
-            className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-        </div>
-      </div>
-
-      {/* Questions List */}
-      <div className="space-y-4">
-        <h2 className="text-lg font-medium text-slate-900">Questions ({assessment.questions.length})</h2>
-        {assessment.questions.map((question, index) => (
-          <div key={question.id} className="bg-white rounded-lg border border-slate-200 p-6">
-            <div className="flex items-start gap-4">
-              <div className="flex items-center gap-2 text-slate-400">
-                <GripVertical className="w-5 h-5" />
-                <span className="font-medium text-lg">Q{index + 1}</span>
-              </div>
-
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="px-3 py-1 bg-blue-50 text-recruiter rounded-full text-xs font-medium">
-                    {question.type.replace(/_/g, ' ')}
-                  </span>
-                  <span className="text-sm text-slate-500">{question.marks} marks</span>
-                </div>
-
-                <textarea
-                  value={question.question}
-                  onChange={(e) => handleUpdateQuestion(question.id, 'question', e.target.value)}
-                  rows={2}
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-recruiter focus:border-transparent mb-3"
-                />
-
-                {question.type === 'multiple_choice' && question.options && (
-                  <div className="space-y-2">
-                    {question.options.map((option, optIndex) => (
-                      <div key={optIndex} className="flex items-center gap-2">
-                        <input
-                          type="radio"
-                          checked={question.correctAnswer === option.charAt(0)}
-                          onChange={() =>
-                            handleUpdateQuestion(question.id, 'correctAnswer', option.charAt(0))
-                          }
-                          className="w-4 h-4"
-                        />
-                        <input
-                          type="text"
-                          value={option}
-                          onChange={(e) => handleUpdateOption(question.id, optIndex, e.target.value)}
-                          className="flex-1 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-recruiter focus:border-transparent"
-                        />
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <button
-                onClick={() => handleDeleteQuestion(question.id)}
-                className="p-2 hover:bg-red-50 rounded-lg transition-colors group"
-              >
-                <Trash2 className="w-5 h-5 text-red-600 group-hover:text-red-700" />
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+  function addQuestion(duplicate = false) { if (!assessment) return; const nextId = Math.max(0, ...assessment.questions.map(question => question.id)) + 1; const question: DemoQuestion = duplicate ? { ...assessment.questions[selected], id: nextId, options: assessment.questions[selected].options?.slice() } : { id: nextId, type: 'multiple_choice', category: 'General', question: '', text: '', options: ['A. ', 'B. ', 'C. ', 'D. '], correctAnswer: 'A', marks: 20 }; update({ questions: [...assessment.questions, question] }); setSelected(assessment.questions.length); setSettings(false); }
+  function move(direction: number) { if (!assessment) return; const target = selected + direction; if (target < 0 || target >= assessment.questions.length) return; const questions = [...assessment.questions]; [questions[selected], questions[target]] = [questions[target], questions[selected]]; update({ questions }); setSelected(target); }
+  if (loading || !assessment) return <PreviewResourceState loading={loading} error={error} />;
+  if (assessment.status !== 'draft') return <div className="assessment-builder"><AssessmentFlowHeader /><section className="builder-surface builder-empty"><h1>This assessment is {assessment.status}.</h1><p>Questions are locked after assignment to keep the assessment consistent for everyone.</p><Link className="flow-button primary" href={'/recruiter/assessments/preview/' + assessment.id}>View assessment<ArrowRight size={14} /></Link></section></div>;
+  const question = assessment.questions[selected], totalMarks = assessment.questions.reduce((sum, item) => sum + item.marks, 0);
+  return <div className="assessment-builder"><AssessmentFlowHeader /><header className="builder-editor-heading"><div><span className="flow-kicker">MAKE IT YOUR OWN</span><h1>Build a fair assessment.</h1><p>Clear questions. Relevant skills. A consistent review.</p></div><div className="builder-heading-actions"><span role="status" className="builder-save-state" data-dirty={dirty}>{dirty ? 'Unsaved changes' : <><Check size={12} />All changes saved</>}</span><button className="flow-button secondary" disabled={saving} onClick={() => void save()}><Save size={13} />{saving ? 'Saving…' : 'Save draft'}</button><button className="flow-button primary" disabled={saving} onClick={() => void save(true)}>Save & preview<ArrowRight size={14} /></button></div></header>
+    {error && <p role="alert" className="builder-error">{error}</p>}
+    <div className="builder-editor-grid"><aside className="builder-question-rail"><div className="builder-rail-label">YOUR ASSESSMENT<span>{assessment.questions.length}</span></div><button className="builder-settings-link" aria-pressed={settings} onClick={() => setSettings(true)}><Settings2 size={14} />Assessment settings</button><div className="builder-question-list" aria-label="Question navigator">{assessment.questions.map((item, index) => <button key={item.id} aria-pressed={!settings && selected === index} onClick={() => { setSelected(index); setSettings(false); }}><span>{String(index + 1).padStart(2, '0')}</span><div><strong>{item.question || 'New question'}</strong><small>{item.marks} marks</small></div></button>)}</div><button className="builder-add-question" disabled={assessment.questions.length >= 100 || saving} onClick={() => addQuestion()}><Plus size={14} />Add question</button></aside>
+      <section className="builder-surface builder-question-editor"><fieldset disabled={saving} className="builder-editable-fields">{settings ? <><header className="builder-section-header"><Settings2 size={20} /><div><h2>Assessment settings</h2><p>Set expectations before candidates begin.</p></div></header><div className="builder-form-fields"><label>Assessment name<input value={assessment.title} maxLength={160} onChange={event => update({ title: event.target.value })} /></label><div className="builder-two-fields"><label>Duration (minutes)<input type="number" min={1} max={600} value={assessment.durationMinutes || ''} onChange={event => update({ durationMinutes: Number(event.target.value) })} /></label><label>Pass mark (%)<input type="number" min={0} max={100} value={assessment.passingScore} onChange={event => update({ passingScore: Number(event.target.value) })} /></label></div><label>Candidate instructions<textarea rows={6} value={assessment.instructions} onChange={event => update({ instructions: event.target.value })} /></label><p className="builder-field-help">Explain the task, allowed tools and what a good answer should show.</p></div></> : question && <><header className="builder-section-header"><span className="flow-section-number">{String(selected + 1).padStart(2, '0')}</span><div><h2>Question {selected + 1}</h2><p>{question.type.replaceAll('_', ' ')} · {question.category}</p></div><div className="builder-question-tools"><button aria-label="Move question up" disabled={selected === 0} onClick={() => move(-1)}><ArrowUp size={14} /></button><button aria-label="Move question down" disabled={selected === assessment.questions.length - 1} onClick={() => move(1)}><ArrowDown size={14} /></button><button aria-label="Duplicate question" disabled={assessment.questions.length >= 100} onClick={() => addQuestion(true)}><Copy size={14} /></button><button aria-label="Remove question" disabled={assessment.questions.length === 1} onClick={() => { update({ questions: assessment.questions.filter((_, index) => index !== selected) }); setSelected(Math.max(0, selected - 1)); }}><Trash2 size={14} /></button></div></header><div className="builder-form-fields"><label>What would you like to ask?<textarea rows={4} value={question.question} onChange={event => updateQuestion({ question: event.target.value, text: event.target.value })} placeholder="Write a clear, role-specific question…" /></label>{question.type === 'multiple_choice' && <fieldset className="builder-options"><legend>Answer options <small>Select the correct answer</small></legend>{question.options?.map((option, index) => { const letter = String.fromCharCode(65 + index); return <div key={index} className="builder-option" data-correct={question.correctAnswer === letter}><input type="radio" name={'correct-' + question.id} aria-label={'Mark option ' + letter + ' as correct'} checked={question.correctAnswer === letter} onChange={() => updateQuestion({ correctAnswer: letter })} /><span>{letter}</span><input aria-label={'Option ' + letter} value={option.replace(/^[A-Z][.)]\s*/, '')} onChange={event => updateQuestion({ options: question.options?.map((value, optionIndex) => optionIndex === index ? letter + '. ' + event.target.value : value) })} />{question.correctAnswer === letter && <Check size={14} />}</div>; })}</fieldset>}{question.type !== 'multiple_choice' && <p className="builder-field-help">Written answers require a human review. Include clear scoring guidance in the question.</p>}<div className="builder-two-fields"><label>Marks<input type="number" min={1} max={1000} value={question.marks || ''} onChange={event => updateQuestion({ marks: Number(event.target.value) })} /></label><label>Skill / category<input value={question.category} onChange={event => updateQuestion({ category: event.target.value })} /></label></div></div><footer className="builder-form-footer"><span>Question {selected + 1} of {assessment.questions.length}</span><button className="flow-button secondary" onClick={() => selected < assessment.questions.length - 1 ? setSelected(selected + 1) : setSettings(true)}>{selected < assessment.questions.length - 1 ? 'Next question' : 'Review settings'}<ArrowRight size={13} /></button></footer></>}</fieldset></section>
+      <aside className="builder-summary"><span className="builder-preview-label">AT A GLANCE</span><h2>{assessment.title}</h2><dl><div><dt>Questions</dt><dd>{assessment.questions.length}</dd></div><div><dt><Clock3 size={13} />Duration</dt><dd>{assessment.durationMinutes} min</dd></div><div><dt>Total marks</dt><dd>{totalMarks}</dd></div><div><dt>Pass mark</dt><dd>{assessment.passingScore}%</dd></div></dl><div className="builder-summary-tip"><span>Keep it focused.</span><p>Ask about work the person will actually do. Preview the assessment before assigning it.</p></div><p className="builder-local-note">Frontend demo · Changes are saved on this device. Questions stay editable until you assign the assessment.</p></aside></div>
+  </div>;
 }

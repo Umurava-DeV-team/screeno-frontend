@@ -1,2 +1,2 @@
-import CandidateOpportunities from "@/components/CandidateOpportunities";
-export default function Page(){return <CandidateOpportunities applicationsOnly/>;}
+import CandidateApplications from "@/components/CandidateApplications";
+export default function Page() { return <CandidateApplications />; }

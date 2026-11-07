@@ -1,131 +1,22 @@
-"use client";
-import { useState } from "react";
-import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, ArrowRight } from "lucide-react";
-import { usePreviewResource } from "@/lib/demo/usePreviewResource";
-import type { DemoAssessment, DemoCandidate } from "@/lib/demo/types";
-import { apiFetch } from "@/lib/api";
-import PreviewResourceState from "@/components/PreviewResourceState";
+'use client';
+import { useState } from 'react';
+import Link from 'next/link';
+import { useParams, useRouter } from 'next/navigation';
+import { ArrowLeft, ArrowRight, Check, LockKeyhole, Search, Users } from 'lucide-react';
+import { usePreviewResource } from '@/lib/demo/usePreviewResource';
+import type { DemoAssessment, DemoCandidate } from '@/lib/demo/types';
+import { apiFetch } from '@/lib/api';
+import AssessmentFlowHeader from '@/components/studio/AssessmentFlowHeader';
+import PreviewResourceState from '@/components/PreviewResourceState';
+
 export default function LaunchAssessmentPage() {
-  const { id } = useParams();
-  const router = useRouter();
-  const test = usePreviewResource<DemoAssessment>("/assessments/" + String(id));
-  const people = usePreviewResource<DemoCandidate[]>("/candidates");
-  const [selected, setSelected] = useState<string[]>([]);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
-  if (test.loading || people.loading || !test.data || !people.data)
-    return (
-      <PreviewResourceState
-        loading={test.loading || people.loading}
-        error={test.error || people.error}
-      />
-    );
-  async function launch() {
-    setBusy(true);
-    setError("");
-    try {
-      await apiFetch("/assessments/" + String(id) + "/launch", {
-        method: "POST",
-        body: JSON.stringify({ candidateIds: selected }),
-      });
-      router.push("/recruiter/assessments/" + String(id));
-    } catch (e) {
-      setError(
-        e instanceof Error
-          ? e.message
-          : "Unable to assign this sample assessment.",
-      );
-    } finally {
-      setBusy(false);
-    }
-  }
-  return (
-    <div className="mx-auto max-w-4xl space-y-6">
-      <Link
-        href={"/recruiter/assessments/edit/" + String(id)}
-        className="inline-flex items-center gap-2 text-xs text-slate-500"
-      >
-        <ArrowLeft size={14} />
-        Back to draft
-      </Link>
-      <div>
-        <p className="ts-eyebrow text-brand">Ready for a review</p>
-        <h1 className="mt-2 text-3xl">Assign the sample assessment.</h1>
-        <p className="mt-3 text-sm leading-7 text-slate-500">
-          {test.data.title} · {test.data.totalQuestions} questions ·{" "}
-          {test.data.durationMinutes} minutes
-        </p>
-      </div>
-      <section className="ts-panel space-y-5 p-6">
-        <p className="rounded bg-brand/5 p-4 text-xs leading-6 text-slate-500">
-          Assignments are created locally. No invitations or emails are sent.
-          Select Amara Niyonzima to try this assessment in the candidate
-          preview. Editing closes once the sample assessment is active.
-        </p>
-        {test.data.status !== "draft" ? (
-          <p className="text-sm text-slate-500">
-            This assessment is already {test.data.status}.
-          </p>
-        ) : (
-          <>
-            <h2 className="text-sm font-semibold">
-              Select sample candidates · {selected.length} selected
-            </h2>
-            <div className="max-h-96 divide-y divide-[#e4e8de] overflow-auto rounded border border-[#e4e8de]">
-              {people.data.map((c) => (
-                <label
-                  key={c.id}
-                  className="flex cursor-pointer items-start gap-3 p-4 text-sm hover:bg-canvas"
-                >
-                  <input
-                    type="checkbox"
-                    checked={selected.includes(c.id)}
-                    onChange={() =>
-                      setSelected(
-                        selected.includes(c.id)
-                          ? selected.filter((id) => id !== c.id)
-                          : [...selected, c.id],
-                      )
-                    }
-                    className="mt-1 accent-brand"
-                  />
-                  <span>
-                    <span className="block font-medium">{c.name}</span>
-                    <span className="mt-1 block text-xs text-slate-400">
-                      {c.currentRole} · {c.email}
-                    </span>
-                  </span>
-                </label>
-              ))}
-            </div>
-            {!people.data.length && (
-              <p className="text-sm text-slate-500">
-                Add a sample candidate first.
-              </p>
-            )}
-            <button
-              onClick={launch}
-              disabled={busy || selected.length === 0}
-              className="ts-button disabled:opacity-40"
-            >
-              {busy
-                ? "Creating local assignments…"
-                : "Assign to " +
-                  selected.length +
-                  " sample candidate" +
-                  (selected.length === 1 ? "" : "s")}
-              <ArrowRight size={15} />
-            </button>
-          </>
-        )}
-        {error && (
-          <p role="alert" className="text-xs text-red-600">
-            {error}
-          </p>
-        )}
-      </section>
-    </div>
-  );
+  const { id } = useParams(), router = useRouter();
+  const test = usePreviewResource<DemoAssessment>('/assessments/' + String(id)), people = usePreviewResource<DemoCandidate[]>('/candidates');
+  const [selected, setSelected] = useState<string[]>([]), [query, setQuery] = useState(''), [busy, setBusy] = useState(false), [error, setError] = useState('');
+  if (test.loading || people.loading || !test.data || !people.data) return <PreviewResourceState loading={test.loading || people.loading} error={test.error || people.error} />;
+  const assessment = test.data, candidates = people.data;
+  const filtered = candidates.filter(person => [person.name, person.email, person.currentRole].join(' ').toLowerCase().includes(query.toLowerCase()));
+  const allVisible = filtered.length > 0 && filtered.every(person => selected.includes(person.id));
+  async function launch() { setBusy(true); setError(''); try { await apiFetch('/assessments/' + String(id) + '/launch', { method: 'POST', body: JSON.stringify({ candidateIds: selected }) }); router.push('/recruiter/assessments/' + String(id)); } catch (cause) { setError(cause instanceof Error ? cause.message : 'Unable to assign assessment.'); setBusy(false); } }
+  return <div className="assessment-builder"><AssessmentFlowHeader /><div className="builder-title"><span className="flow-kicker">THE FINAL CHECK</span><h1>Choose who takes the next step.</h1><p>Review the assessment, then assign it to your selected candidates.</p></div>{assessment.status !== 'draft' ? <section className="builder-surface builder-empty"><h2>This assessment is already {assessment.status}.</h2><Link className="flow-button secondary" href={'/recruiter/assessments/' + assessment.id}>View results<ArrowRight size={14} /></Link></section> : <div className="builder-assignment-grid"><section className="builder-surface"><header className="builder-section-header"><Users size={20} /><div><h2>Select candidates</h2><p>{selected.length} selected · {candidates.length} available</p></div></header><div className="builder-candidate-search"><Search size={14} /><input aria-label="Search candidates" value={query} onChange={event => setQuery(event.target.value)} placeholder="Search name, role or email…" /></div><label className="builder-select-all"><input type="checkbox" checked={allVisible} disabled={!filtered.length || busy} onChange={() => setSelected(allVisible ? selected.filter(value => !filtered.some(person => person.id === value)) : [...new Set([...selected, ...filtered.map(person => person.id)])])} />Select all {query ? 'matching' : ''} candidates<span>{filtered.length}</span></label><div className="builder-candidate-list">{filtered.map(person => <label key={person.id} data-selected={selected.includes(person.id)}><input type="checkbox" checked={selected.includes(person.id)} disabled={busy} onChange={() => setSelected(selected.includes(person.id) ? selected.filter(value => value !== person.id) : [...selected, person.id])} /><span className="builder-candidate-initials">{person.name.split(' ').map(word => word[0]).slice(0, 2).join('')}</span><div><strong>{person.name}</strong><small>{person.currentRole} · {person.email}</small></div>{selected.includes(person.id) && <Check size={14} />}</label>)}{!filtered.length && <p className="builder-no-results">{candidates.length ? 'No matching candidates. Try another search.' : 'Add candidates before assigning an assessment.'}</p>}</div></section><aside className="builder-assignment-summary builder-surface"><span className="builder-preview-label">READY TO ASSIGN</span><h2>{assessment.title}</h2><dl><div><dt>Questions</dt><dd>{assessment.questions.length}</dd></div><div><dt>Duration</dt><dd>{assessment.durationMinutes} minutes</dd></div><div><dt>Pass mark</dt><dd>{assessment.passingScore}%</dd></div><div><dt>Selected candidates</dt><dd>{selected.length}</dd></div></dl><p className="builder-assignment-lock"><LockKeyhole size={16} />Questions become locked once this assessment is assigned.</p><p className="builder-local-note">Frontend demo: assignments stay on this device. No emails or external invitations are sent.</p>{error && <p role="alert" className="builder-error">{error}</p>}<button className="flow-button primary" disabled={busy || !selected.length} onClick={() => void launch()}>{busy ? 'Assigning…' : 'Assign to ' + selected.length + (selected.length === 1 ? ' candidate' : ' candidates')}<ArrowRight size={14} /></button><Link className="flow-back" href={'/recruiter/assessments/preview/' + assessment.id}><ArrowLeft size={13} />Back to preview</Link></aside></div>}</div>;
 }

@@ -1,6 +1,7 @@
 'use client';
 
-import { Plus, Brain } from 'lucide-react';
+import { Plus, Brain, Briefcase, CheckCircle2, FileEdit, Archive } from 'lucide-react';
+import MetricRail from '@/components/MetricRail';
 import { useEffect, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '@/lib/store/hooks';
 import { fetchJobs } from '@/lib/store/features/jobsSlice';
@@ -13,10 +14,6 @@ import EditJobModal from '@/components/modals/EditJobModal';
 import AIScreeningModal from '@/components/modals/AIScreeningModal';
 import CreateCandidateModal from '@/components/modals/CreateCandidateModal';
 import toast from 'react-hot-toast';
-
-function cn(...inputs: (string | boolean | undefined | null)[]) {
-  return inputs.filter(Boolean).join(' ');
-}
 
 export default function RecruiterJobsPage() {
   const dispatch = useAppDispatch();
@@ -44,7 +41,6 @@ export default function RecruiterJobsPage() {
   const handleEdit = (job: ApiJob) => { setSelectedJob(job); setIsEditOpen(true); };
   const handleDelete = (job: ApiJob) => { setSelectedJob(job); setIsDeleteOpen(true); };
   const handleTriggerScreening = (job: ApiJob) => { setSelectedJob(job); setIsScreeningOpen(true); };
-  const handleAddCandidate = (job: ApiJob) => { setSelectedJob(job); setIsCandidateCreateOpen(true); };
 
   const tableColumns: Column<ApiJob>[] = [
     {
@@ -107,6 +103,12 @@ export default function RecruiterJobsPage() {
 
 
 
+      <MetricRail loading={loading && !jobs.length} metrics={[
+        {label:'Total jobs',value:jobs.length,icon:Briefcase},
+        {label:'Active jobs',value:jobs.filter(job=>job.status==='active').length,icon:CheckCircle2},
+        {label:'Drafts',value:jobs.filter(job=>job.status==='draft').length,icon:FileEdit},
+        {label:'Closed / archived',value:jobs.filter(job=>job.status==='closed'||job.status==='archived').length,icon:Archive},
+      ]}/>
       {loading && jobs.length === 0 ? (
         <div className="text-center py-20 text-slate-400 font-medium text-sm tracking-wide">Loading jobs...</div>
       ) : (
@@ -131,7 +133,7 @@ export default function RecruiterJobsPage() {
       <JobViewModal
         isOpen={isViewOpen}
         onClose={() => setIsViewOpen(false)}
-        job={jobs.find((j: any) => j._id === selectedJob?._id) || selectedJob}
+        job={jobs.find((j: ApiJob) => j._id === selectedJob?._id) || selectedJob}
       />
 
       <DeleteJobModal

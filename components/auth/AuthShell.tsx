@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { motion, useReducedMotion } from "motion/react";
-import { Check, KeyRound, Mail, ShieldCheck } from "lucide-react";
+import { ArrowUpRight, Check, KeyRound, Mail, ShieldCheck, Sparkles, Users } from "lucide-react";
 import type { ReactNode } from "react";
 import ScreenoMark from "../ScreenoMark";
 
@@ -35,6 +35,24 @@ function RecoveryDecoration({ mode }: { mode: AuthMode }) {
   return <span className="auth-recovery-symbol" aria-hidden="true"><Icon size={22} strokeWidth={1.6} /><span /></span>;
 }
 
+function IllustrationDecorations() {
+  return <div className="auth-illustration-decor" aria-hidden="true">
+    <svg className="auth-art-trails" viewBox="0 0 340 365" fill="none">
+      <path d="M45 305C5 267 5 133 55 74M278 42C335 77 348 236 307 290" stroke="currentColor" strokeWidth="1" strokeDasharray="3 7" strokeLinecap="round" />
+      <circle cx="55" cy="74" r="4" fill="currentColor" stroke="white" strokeWidth="3" />
+      <circle cx="307" cy="290" r="5" fill="#b1ff43" stroke="white" strokeWidth="3" />
+      <circle cx="31" cy="192" r="12" stroke="currentColor" strokeOpacity=".18" />
+      <path d="M280 337h10m-5-5v10M74 29h8m-4-4v8" stroke="currentColor" strokeLinecap="round" />
+      <circle cx="295" cy="114" r="2" fill="currentColor" fillOpacity=".35" />
+    </svg>
+    <span className="auth-art-label people"><span><Users size={13} strokeWidth={1.7} /></span>People first</span>
+    <span className="auth-art-sticker"><Sparkles size={19} strokeWidth={1.5} /></span>
+    <span className="auth-art-check-bubble"><Check size={16} strokeWidth={2} /></span>
+    <span className="auth-art-label chapter">New beginnings<ArrowUpRight size={13} /></span>
+    <span className="auth-art-dot-grid" />
+  </div>;
+}
+
 export function AuthShell({ mode, children, footer, recovery, onGoogle, googleLoading, accountRole = "recruiter" }: AuthShellProps) {
   const reduced = useReducedMotion();
   const copy = { ...COPY[mode], ...(mode === "login" && accountRole === "candidate" ? { subtitle: "Sign in to follow your applications and next steps." } : {}) };
@@ -44,7 +62,7 @@ export function AuthShell({ mode, children, footer, recovery, onGoogle, googleLo
     <motion.main className="auth-split-card" initial={reduced ? false : { opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .55, ease: [.22, 1, .36, 1] }}>
       <Link href="/" className="auth-brand" aria-label="Screeno home"><ScreenoMark size={25} /><span>screeno<span className="auth-brand-dot">.</span></span></Link>
       <aside className="auth-visual">
-        <div className="auth-illustration"><Image src="/marketing/screeno-auth-editorial.webp" alt="A friendly cartoon character working on a laptop beside a plant" fill priority sizes="(min-width: 850px) 360px, 0px" className="auth-character-image" /></div>
+        <div className="auth-illustration"><Image src="/marketing/screeno-auth-editorial.webp" alt="A friendly cartoon character working on a laptop beside a plant" fill priority sizes="(min-width: 850px) 360px, 0px" className="auth-character-image" /><IllustrationDecorations /></div>
         <p className="auth-illustration-caption">Good hiring starts with people.</p>
         <Link href={`/auth/${accountRole}/${mode === "signup" ? "login" : "register"}`} className="auth-visual-link">{mode === "signup" ? "Already have an account? Sign in" : "Create an account"}</Link>
       </aside>

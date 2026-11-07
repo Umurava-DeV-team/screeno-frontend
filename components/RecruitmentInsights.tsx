@@ -3,8 +3,7 @@ import CustomSelect from "@/components/CustomSelect";
 
 import {useEffect,useMemo,useState} from "react";
 import dynamic from "next/dynamic";
-import {RefreshCw,ArrowUpRight,Globe2,MapPin,X} from "lucide-react";
-import Link from "next/link";
+import {RefreshCw,Globe2,MapPin,X} from "lucide-react";
 import {useAppDispatch,useAppSelector} from "@/lib/store/hooks";
 import {fetchCandidates} from "@/lib/store/features/candidateSlice";
 
@@ -26,7 +25,7 @@ export default function RecruitmentInsights({standalone=true,rangeValue,onRangeC
  function selectCountry(name:string){setSelected(value=>value===name?null:name);}
  function refresh(){setSelected(null);void dispatch(fetchCandidates());void dispatch(fetchScreeningHistory("all"));}
  return <section className="screeno-insights" aria-label="Recruitment analytics">
-  {!hideHeading&&<header className="screeno-insights-heading"><div><p>YOUR REPORTS</p><h2>{standalone?"Hiring analytics":"Your hiring activity"}</h2><span>Activity uses your selected dates. The map and shortlist include all applicants.</span></div><div className="screeno-insights-actions"><label className="sr-only" htmlFor="insights-range">Activity date range</label><CustomSelect id="insights-range" value={range} onChange={event=>setRange(Number(event.target.value))}><option value={7}>Last 7 days</option><option value={30}>Last 30 days</option><option value={90}>Last 90 days</option></CustomSelect>{standalone?<button type="button" onClick={refresh} disabled={loading} aria-label="Refresh analytics"><RefreshCw size={15} className={loading?"animate-spin":""}/></button>:<Link href="/recruiter/analytics">View analytics <ArrowUpRight size={13}/></Link>}</div></header>}
+  {!hideHeading&&<header className="screeno-insights-heading"><div><p>YOUR REPORTS</p><h2>{standalone?"Hiring analytics":"Your hiring activity"}</h2><span>Activity uses your selected dates. The map and shortlist include all applicants.</span></div><div className="screeno-insights-actions"><label className="sr-only" htmlFor="insights-range">Activity date range</label><CustomSelect id="insights-range" value={range} onChange={event=>setRange(Number(event.target.value))}><option value={7}>Last 7 days</option><option value={30}>Last 30 days</option><option value={90}>Last 90 days</option></CustomSelect><button type="button" onClick={refresh} disabled={loading} aria-label="Refresh analytics"><RefreshCw size={15} className={loading?"animate-spin":""}/></button></div></header>}
   {error&&<p className="screeno-insights-warning" role="alert">Some records could not be loaded. Charts may be incomplete. {error}<button type="button" onClick={refresh}>Try again</button></p>}
   <div className="screeno-analytics-grid">
    <article className="screeno-analytics-card activity-card"><header><div><h3>Applicant activity</h3><p>New records over the last {range} days · Africa/Johannesburg</p></div><strong>{data.newCandidates}<small>new applicants</small></strong></header>{loading&&!data.total?<ChartLoading/>:<ActivityChart data={data.daily}/>}<div className="screeno-activity-summary"><span><b>{data.sessions}</b>screening sessions in period</span><span><b>{data.total}</b>applicants in your workspace</span></div>{data.undated>0&&<p className="screeno-data-note">{data.undated} records with no valid date are excluded from the activity chart.</p>}<details className="screeno-chart-data"><summary>View activity data</summary><div>{data.daily.map(day=><p key={day.date}><span>{day.date}</span><b>{day.count}</b></p>)}</div></details></article>

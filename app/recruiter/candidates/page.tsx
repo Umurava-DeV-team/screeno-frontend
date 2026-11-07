@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
-import {Plus,Upload,Mail} from "lucide-react";
+import {Plus,Upload,Mail,Users,Briefcase,UserRound,MapPin} from "lucide-react";
+import MetricRail from "@/components/MetricRail";
 import {useEffect,useState} from "react";
 import {useAppDispatch,useAppSelector} from "@/lib/store/hooks";
 import {fetchCandidates,type ApiCandidate} from "@/lib/store/features/candidateSlice";
@@ -25,6 +26,12 @@ export default function RecruiterCandidatesPage(){
  {header:"Job",accessor:person=>person.jobApplied||"Talent pool"}
  ];
  return <div className="screeno-candidates-page"><header className="screeno-page-title"><div><p>YOUR PEOPLE</p><h1>Applicant database</h1><span>Review profiles, manage records, and find the right people for each role.</span></div><div><Link href="/recruiter/candidates/upload" className="screeno-outline-button"><Upload size={14}/>Import applicants</Link><button type="button" className="screeno-soft-button" onClick={()=>setModal("create")}><Plus size={15}/>Add applicant</button></div></header>
+ <MetricRail loading={loading&&!candidates.length} metrics={[
+ {label:"Total candidates",value:candidates.length,icon:Users},
+ {label:"Assigned to roles",value:candidates.filter(person=>!!person.jobId).length,icon:Briefcase},
+ {label:"Talent pool",value:candidates.filter(person=>!person.jobId).length,icon:UserRound},
+ {label:"Locations",value:new Set(candidates.map(person=>person.location?.trim()).filter(Boolean)).size,icon:MapPin}
+ ]}/>
  {error&&<p role="alert" className="screeno-inline-error">{error}<button onClick={()=>dispatch(fetchCandidates())}>Try again</button></p>}
  <div className="screeno-candidate-database"><DataTable<ApiCandidate> title="All applicants" columns={columns} data={candidates} rowKey="_id" selectedRowKey={active?._id} onRowSelect={selectPerson} onView={person=>open(person,"view")} onEdit={person=>open(person,"edit")} onDelete={person=>open(person,"delete")} searchPlaceholder={loading?"Loading applicants…":"Search by name, role or location…"}/><CandidateDetailsPanel candidate={active} onView={()=>active&&open(active,"view")} onEdit={()=>active&&open(active,"edit")}/></div>
  <CreateCandidateModal isOpen={modal==="create"} onClose={()=>setModal(null)} onSuccess={()=>{setModal(null);void dispatch(fetchCandidates());}}/>

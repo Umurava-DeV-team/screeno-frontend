@@ -6,6 +6,8 @@ import "./studio-review.css";
 import "./studio-account.css";
 import "./studio-candidate.css";
 import "./workspace-compact.css";
+import "./recruiting-builder.css";
+import "./candidate-workspace.css";
 import { landingFont } from "@/lib/landingFont";
 import { ReduxProvider } from "@/components/providers/ReduxProvider";
 

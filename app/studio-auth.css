@@ -6,6 +6,16 @@
 .auth-visual { min-width: 0; min-height: 0; text-align: center; }
 .auth-illustration { position: relative; width: min(340px,100%); height: min(365px,49svh); margin: auto; }
 .auth-character-image { object-fit: contain; }
+.auth-illustration-decor { position: absolute; inset: 0; pointer-events: none; color: #0649b5; }
+.auth-art-trails { position: absolute; inset: 0; width: 100%; height: 100%; color: #5280bb; }
+.auth-art-label { position: absolute; display: inline-flex; align-items: center; gap: 8px; padding: 8px 11px; border: 1px solid #e2eaf1; border-radius: 30px; background: #ffffffec; box-shadow: 0 8px 23px #254e7a0d; color: #426181; font-size: 10px; font-weight: 600; white-space: nowrap; backdrop-filter: blur(8px); animation: auth-art-float 7s ease-in-out infinite; }
+.auth-art-label.people { top: 9%; left: -1%; transform: rotate(-7deg); --art-angle: -7deg; }
+.auth-art-label.people>span { display: grid; place-items: center; width: 23px; height: 23px; border-radius: 50%; color: #0649b5; background: #eef4ff; }
+.auth-art-label.chapter { right: -2%; bottom: 9%; color: #385837; background: #f5ffe8ed; border-color: #e1efcf; --art-angle: 6deg; transform: rotate(6deg); animation-delay: -3s; }
+.auth-art-sticker { position: absolute; display: grid; place-items: center; top: 12%; right: 7%; width: 41px; height: 41px; border: 4px solid #fff; border-radius: 12px; background: #b1ff43; color: #36552f; box-shadow: 0 5px 16px #5f813e16; transform: rotate(13deg); }
+.auth-art-check-bubble { position: absolute; left: 2%; bottom: 22%; display: grid; place-items: center; width: 31px; height: 31px; border: 1px solid #e1eaf3; border-radius: 50%; background: #fff; color: #0649b5; box-shadow: 0 5px 15px #254e7a0b; }
+.auth-art-dot-grid { position: absolute; right: 2%; top: 45%; width: 26px; height: 38px; background-image: radial-gradient(#0649b533 1px,transparent 1px); background-size: 7px 7px; }
+@keyframes auth-art-float { 0%,100% { transform: translateY(0) rotate(var(--art-angle)); } 50% { transform: translateY(-5px) rotate(var(--art-angle)); } }
 .auth-illustration-caption { margin: 12px 0 0; font-size: 12px; color: #8a9597; }
 .auth-visual-link { display: inline-block; margin-top: 28px; color: #364647; font-size: 11px; text-decoration: underline; text-underline-offset: 4px; }
 .auth-form-panel { display: flex; align-items: center; justify-content: center; min-width: 0; min-height: 0; }

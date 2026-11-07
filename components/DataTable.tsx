@@ -27,6 +27,8 @@ interface DataTableProps<T> {
   title?: string;
   onRowSelect?: (item: T) => void;
   selectedRowKey?: string | number;
+  selectedKeys?: readonly (string | number)[];
+  onSelectionChange?: (keys: (string | number)[]) => void;
   onView?: (item: T) => void;
   onEdit?: (item: T) => void;
   onDelete?: (item: T) => void;
@@ -58,6 +60,8 @@ export default function DataTable<T>({
   title,
   onRowSelect,
   selectedRowKey,
+  selectedKeys = [],
+  onSelectionChange,
   onView,
   onEdit,
   onDelete,
@@ -73,10 +77,10 @@ export default function DataTable<T>({
   const [sort, setSort] = useState("");
   const [descending, setDescending] = useState(false);
   const sorted = useMemo(() => {
-    const filtered = data.filter((item) =>
+    const filtered = data.filter((item, index) =>
       Object.values(item as Record<string, unknown>).some((v) =>
         cellText(v).toLowerCase().includes(query.trim().toLowerCase()),
-      ),
+      ) || columns.some(column => renderedText(typeof column.accessor === "function" ? column.accessor(item, index) : item[column.accessor] as ReactNode).toLowerCase().includes(query.trim().toLowerCase())),
     );
     if (sort) {
       const column = columns[Number(sort)];
@@ -98,6 +102,7 @@ export default function DataTable<T>({
   const current = Math.min(page, pages);
   const start = (current - 1) * size;
   const rows = sorted.slice(start, start + size);
+  const pageNumbers = [...new Set([1, pages, ...Array.from({ length: 5 }, (_, index) => current - 2 + index).filter(value => value >= 1 && value <= pages)])].sort((a, b) => a - b);
   const actions = !!(onView || onEdit || onDelete);
   function key(item: T, index: number) {
     if (typeof rowKey === "function") return rowKey(item, index);
@@ -109,7 +114,7 @@ export default function DataTable<T>({
   return (
     <section className="ts-panel screeno-record-table overflow-hidden">
       {title && (
-        <div className="border-b border-[#e5e9df] px-5 py-4">
+        <div className="screeno-table-heading border-b border-[#e5e9df] px-5 py-4">
           <h2 className="text-sm font-semibold">{title}</h2>
         </div>
       )}
@@ -167,28 +172,13 @@ export default function DataTable<T>({
             <ArrowDownUp size={12} />
             {descending ? "Descending" : "Ascending"}
           </button>
-          <label className="ml-auto">
-            Rows{" "}
-            <CustomSelect
-              aria-label="Rows per page"
-              value={size}
-              onChange={(e) => {
-                setSize(Number(e.target.value));
-                setPage(1);
-              }}
-              className="ml-2 rounded border border-[#dde3d5] bg-white p-2"
-            >
-              {[5, 10, 20, 50].map((n) => (
-                <option key={n}>{n}</option>
-              ))}
-            </CustomSelect>
-          </label>
         </div>
       )}
       <div className="overflow-x-auto">
         <table className="w-full min-w-[580px] border-collapse text-left">
           <thead>
             <tr className="bg-ink">
+              {onSelectionChange && <th className="screeno-select-column"><input type="checkbox" aria-label="Select all records on this page" checked={rows.length > 0 && rows.every((item, i) => selectedKeys.includes(key(item, start + i)))} ref={node => { if (node) node.indeterminate = rows.some((item, i) => selectedKeys.includes(key(item, start + i))) && !rows.every((item, i) => selectedKeys.includes(key(item, start + i))); }} onChange={event => { const pageKeys = rows.map((item, i) => key(item, start + i)); onSelectionChange(event.target.checked ? [...new Set([...selectedKeys, ...pageKeys])] : selectedKeys.filter(value => !pageKeys.includes(value))); }} /></th>}
               {columns.map((c) => (
                 <th
                   key={c.header}
@@ -209,10 +199,12 @@ export default function DataTable<T>({
               rows.map((item, i) => (
                 <tr
                   key={key(item, start + i)}
-                  data-selected={selectedRowKey === key(item, start + i)}
+                  data-selected={selectedRowKey === key(item, start + i) || selectedKeys.includes(key(item, start + i))}
+                  data-record-row="true"
                   onClick={(event) => { if (onRowSelect && !(event.target as HTMLElement).closest("button,a,input,select")) onRowSelect(item); }}
                   className="border-b border-[#e9ece3] bg-white transition-colors even:bg-[#fafbf8] hover:bg-[#f1f5e9]"
                 >
+                  {onSelectionChange && <td className="screeno-select-column"><input type="checkbox" aria-label={"Select record " + (start + i + 1)} checked={selectedKeys.includes(key(item, start + i))} onChange={event => { const value = key(item, start + i); onSelectionChange(event.target.checked ? [...selectedKeys, value] : selectedKeys.filter(selected => selected !== value)); }} /></td>}
                   {columns.map((c) => (
                     <td
                       key={c.header}
@@ -261,7 +253,7 @@ export default function DataTable<T>({
             ) : (
               <tr>
                 <td
-                  colSpan={columns.length + (actions ? 1 : 0)}
+                  colSpan={columns.length + (actions ? 1 : 0) + (onSelectionChange ? 1 : 0)}
                   className="px-6 py-16 text-center"
                 >
                   <div className="mx-auto mb-4 flex size-12 items-center justify-center rounded-md bg-canvas text-slate-400">
@@ -292,12 +284,13 @@ export default function DataTable<T>({
           </tbody>
         </table>
       </div>
-      <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4 text-[11px] text-slate-500">
+      <div className="screeno-table-pagination">
         <p aria-live="polite">
           Showing {sorted.length ? start + 1 : 0}–
           {Math.min(start + size, sorted.length)} of {sorted.length} records
         </p>
-        <div className="flex items-center gap-2">
+        <div className="screeno-pagination-controls"><label className="screeno-page-size">Rows per page<CustomSelect aria-label="Rows per page" value={size} onChange={event => { setSize(Number(event.target.value)); setPage(1); }}>{[5,10,20,50].map(value => <option key={value} value={value}>{value}</option>)}</CustomSelect></label>
+        <nav aria-label={(title || "Records") + " pagination"}>
           <button
             aria-label="Previous page"
             onClick={() => setPage(current - 1)}
@@ -306,9 +299,7 @@ export default function DataTable<T>({
           >
             <ChevronLeft size={14} />
           </button>
-          <span className="px-2">
-            {current} / {pages}
-          </span>
+          {pageNumbers.map((value, index) => <span key={value} className="screeno-page-slot">{index > 0 && value - pageNumbers[index - 1] > 1 && <span className="screeno-page-ellipsis" aria-hidden="true">…</span>}<button type="button" aria-label={"Page " + value} aria-current={current === value ? "page" : undefined} onClick={() => setPage(value)}>{value}</button></span>)}
           <button
             aria-label="Next page"
             onClick={() => setPage(current + 1)}
@@ -317,7 +308,7 @@ export default function DataTable<T>({
           >
             <ChevronRight size={14} />
           </button>
-        </div>
+        </nav></div>
       </div>
     </section>
   );
