@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192" fill="none">
+  <g stroke="#0649b5" stroke-width="0.8" stroke-linejoin="round">
+    <path d="M96 20 172 96 96 172 20 96Z" stroke-opacity=".14"/>
+    <path d="M96 34 158 96 96 158 34 96Z" stroke-opacity=".09"/>
+    <path d="M96 48 144 96 96 144 48 96Z" stroke-opacity=".06"/>
+    <path d="m-20 0 20 20L20 0M172 0l20 20L212 0M-20 192l20-20 20 20m152 0 20-20 20 20" stroke-opacity=".12"/>
+    <path d="M0 68v14m0 28v14m192-56v14m0 28v14M68 0h14m28 0h14M68 192h14m28 0h14" stroke-opacity=".08"/>
+  </g>
+  <g fill="#0649b5" fill-opacity=".17">
+    <circle cx="96" cy="20" r="1.5"/>
+    <circle cx="172" cy="96" r="1.5"/>
+    <circle cx="96" cy="172" r="1.5"/>
+    <circle cx="20" cy="96" r="1.5"/>
+    <circle cx="0" cy="0" r="1.4"/>
+    <circle cx="192" cy="0" r="1.4"/>
+    <circle cx="0" cy="192" r="1.4"/>
+    <circle cx="192" cy="192" r="1.4"/>
+  </g>
+  <path d="M94 92h6v6h-6z" fill="#b1ff43" fill-opacity=".48"/>
+  <path d="M90 88h5m-5 0v5" stroke="#0649b5" stroke-opacity=".12" stroke-width="1"/>
+</svg>
