@@ -1,11 +1,21 @@
 /* Manrope, quiet illustration, and a compact form across every auth route. */
-.auth-page { display: grid; place-items: center; min-height: 100svh; padding: 28px; background: #f7f8f7; color: #243234; }
-.auth-split-card { position: relative; display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 42px; width: min(1040px,100%); min-height: 0; height: min(650px,calc(100svh - 64px)); padding: 72px 70px 44px; border: 1px solid #f0f1ef; border-radius: 15px; background: #fff; box-shadow: 0 14px 34px #24323409; }
+.auth-page { position: relative; isolation: isolate; display: grid; place-items: center; min-height: 100svh; padding: 28px; background: radial-gradient(ellipse at 0 0,#0649b509,transparent 52%),radial-gradient(ellipse at 100% 100%,#b1ff4317,transparent 48%),#eef1f3; color: #243234; }
+.auth-page::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: url('/marketing/screeno-auth-weave.svg') repeat; background-size: 192px 192px; opacity: .85; mask-image: radial-gradient(ellipse at 50% 45%,#0002 5%,#000 70%); }
+.auth-split-card { position: relative; display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 42px; width: min(1040px,100%); min-height: 0; height: min(650px,calc(100svh - 64px)); padding: 72px 70px 44px; border: 1px solid #ffffffb8; border-radius: 15px; background: #e6ede5; box-shadow: 0 18px 50px #243e3510,inset 0 1px 0 #ffffffbd,inset 0 -1px 0 #ffffff38; }
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .auth-split-card { background: linear-gradient(135deg,#ffffff50,#ffffff08 55%,#b5cfbf24),#d9e6d9b8; -webkit-backdrop-filter: blur(18px) saturate(115%); backdrop-filter: blur(18px) saturate(115%); }
+}
+@media(prefers-reduced-transparency:reduce) {
+  .auth-split-card { background: #e6ede5; -webkit-backdrop-filter: none; backdrop-filter: none; }
+}
 .auth-brand { position: absolute; top: 28px; left: 42px; display: inline-flex; align-items: center; gap: 7px; color: #243234; font-size: 17px; font-weight: 800; letter-spacing: -.06em; }
 .auth-brand-dot { color: #0649b5; }
+.auth-split-card :is(.auth-heading p,.links-demo-note,.links-auth-form label,.links-auth-inline,.auth-social-row,.links-auth-return,.auth-illustration-caption) { color: #566d60; }
+.auth-split-card .links-auth-form input::placeholder { color: #667d6d; }
+.auth-split-card .links-auth-form input:not([inputmode=numeric]) { border-bottom-color: #b7c7bc; }
 .auth-visual { min-width: 0; min-height: 0; text-align: center; }
 .auth-illustration { position: relative; width: min(340px,100%); height: min(365px,49svh); margin: auto; }
-.auth-character-image { object-fit: contain; }
+.auth-character-image { object-fit: contain; mix-blend-mode: multiply; }
 .auth-illustration-decor { position: absolute; inset: 0; pointer-events: none; color: #0649b5; }
 .auth-art-trails { position: absolute; inset: 0; width: 100%; height: 100%; color: #5280bb; }
 .auth-art-label { position: absolute; display: inline-flex; align-items: center; gap: 8px; padding: 8px 11px; border: 1px solid #e2eaf1; border-radius: 30px; background: #ffffffec; box-shadow: 0 8px 23px #254e7a0d; color: #426181; font-size: 10px; font-weight: 600; white-space: nowrap; backdrop-filter: blur(8px); animation: auth-art-float 7s ease-in-out infinite; }
